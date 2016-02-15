@@ -1,0 +1,19 @@
+{
+  "name": "poi-plugin-subtitle",
+  "version": "0.0.1",
+  "description": "A poi plugin which can display subtitles of kanmusu voices in alert panel",
+  "main": "index.cjsx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kcwikizh/poi-plugin-subtitle.git"
+  },
+  "author": "Grzhan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kcwikizh/poi-plugin-subtitle/issues"
+  },
+  "homepage": "https://github.com/kcwikizh/poi-plugin-subtitle#readme"
+}
