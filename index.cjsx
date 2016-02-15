@@ -11,9 +11,13 @@ convertFilename = (shipId, voiceId) ->
   return voiceId if voiceId in [6]
   return (shipId + 7) * 17 * voiceKey[voiceId - 1] % 99173 + 100000
 voiceMap[convertFilename(275,i)] = i for i in [1..voiceKey.length]
+subtitles = 
+  1: '长门：我长门，可远不会输给新来的呐。'
+  2: '长门：那，那個……姑且還是準備好了的。不，只是陸奧她說，這種東西很重要的。啊，這個給你。怎麼樣……'
+  3: '长门：我的脸上有什么东西么？'
+  4: '长门：嗯、幹什麼……!? 不……不是……並不是討厭……'
 
 if config.get('plugin.Subtitle.enable', true)
-  reportInit()
   window.addEventListener 'game.response', (e) ->
     {method, path, body, postBody} = e.detail
     {_ships, _decks, _teitokuLv} = window
@@ -23,13 +27,11 @@ if config.get('plugin.Subtitle.enable', true)
         console.log JSON.stringify shipgraph
     return
   webview.addEventListener 'did-get-response-details', (e) ->
+    console.log e.newURL
     match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
     return if not match? or match.length < 3
     [..., shipCode, fileName] = match
-    # window.log '长门：嗯、怎…不，不是…并不是讨厌…' if e.newURL.indexOf('111994.mp3') >=0
-    console.log shipCode
-    console.log fileName
-    console.log voiceMap[fileName] if shipCode == 'szgthkexanxl'
+    window.log subtitles[keymap[fileName]] if shipCode == 'szgthkexanxl'
     return
 module.exports =
   name: 'Subtitle'
