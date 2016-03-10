@@ -43,12 +43,14 @@ if config.get('plugin.Subtitle.enable', true)
       window.log "#{$ships[apiId].api_name}：#{subtitle}",
         priority : 5,
         stickyFor: 5000
+    else
+      window.log "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！"
     return
 
 module.exports =
   name: 'Subtitle'
   author: [<a key={0} href="https://github.com/grzhan">grzhan</a>]
-  displayName: <span><FontAwesome key={0} name='microphone' /> 语音字幕</span>
-  description: '舰娘语音字幕插件'
+  displayName: <span><FontAwesome key={0} name='microphone' /> kcwiki语音字幕</span>
+  description: '语音字幕插件（舰娘百科支持）'
   show: false
   version: PLUGIN_VERSION
