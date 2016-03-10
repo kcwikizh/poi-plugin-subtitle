@@ -22,7 +22,6 @@ fs.readFileAsync subtitlesFile, (err, data) ->
   console.log 'Subtitles.json is not exist' if err?.code is 'ENOENT'
   console.error err.code if err?.code isnt 'ENOENT' and err?.code
 
-
 if config.get('plugin.Subtitle.enable', true)
   window.addEventListener 'game.response', (e) ->
     {method, path, body, postBody} = e.detail
@@ -40,7 +39,10 @@ if config.get('plugin.Subtitle.enable', true)
     voiceId = voiceMap[apiId][fileName]
     return if not voiceId
     subtitle = subtitles[apiId]?[voiceId]
-    window.log "#{$ships[apiId].api_name}：#{subtitle}" if subtitle
+    if subtitle
+      window.log "#{$ships[apiId].api_name}：#{subtitle}",
+        priority : 5,
+        stickyFor: 5000
     return
 
 module.exports =
