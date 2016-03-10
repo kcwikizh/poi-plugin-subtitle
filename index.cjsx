@@ -29,6 +29,8 @@ if config.get('plugin.Subtitle.enable', true)
     switch path
       when '/kcsapi/api_start2'
         shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
+        # Adjust animation duation
+        $('poi-alert #alert-area')?.style?.animationDuration="20s"
     return
   webview.addEventListener 'did-get-response-details', (e) ->
     match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
