@@ -7,11 +7,9 @@ PLUGIN_VERSION = '0.1.2'
 webview = $('kan-game webview')
 shipgraph = {}
 voiceMap = {}
-voiceKey = [2475, 1555, 3347, 8691, 7847, 3595, 1767, 3311, 2507, 9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149, 1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231, 3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447, 3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457, 5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331]
+voiceKey = [604825,607300,613847,615318,624009,631856,635451,637218,640529,643036,652687,658008,662481,669598,675545,685034,687703,696444,702593,703894,711191,714166,720579,728970,738675,740918,743009,747240,750347,759846,764051,770064,773457,779858,786843,790526,799973,803260,808441,816028,825381,827516,832463,837868,843091,852548,858315,867580,875771,879698,882759,885564,888837,896168]
 convertFilename = (shipId, voiceId) ->
-  # Kadokawa doesn't provide repair voice any more. We need to use the old.
-  return voiceId if voiceId in [6]
-  return (shipId + 7) * 17 * voiceKey[voiceId - 1] % 99173 + 100000
+  return (shipId + 7) * 17 * (voiceKey[voiceId] - voiceKey[voiceId - 1]) % 99173 + 100000
 for shipNo in [1..500]
   voiceMap[shipNo] = {}
   voiceMap[shipNo][convertFilename(shipNo,i)] = i for i in [1..voiceKey.length]
@@ -33,20 +31,25 @@ if config.get('plugin.Subtitle.enable', true)
         $('poi-alert #alert-area')?.style?.animationDuration="20s"
     return
   webview.addEventListener 'did-get-response-details', (e) ->
+    prior = 5
     match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
     return if not match? or match.length < 3
+    console.log e.newURL
     [..., shipCode, fileName] = match
     apiId = shipgraph[shipCode]
     return if not apiId
     voiceId = voiceMap[apiId][fileName]
     return if not voiceId
     subtitle = subtitles[apiId]?[voiceId]
+    prior = 0 if 8 < voiceId < 11
     if subtitle
       window.log "#{$ships[apiId].api_name}：#{subtitle}",
-        priority : 5,
+        priority : prior,
         stickyFor: 5000
     else
-      window.log "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！"
+      window.log "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！",
+        priority : prior,
+        stickyFor: 5000
     return
 
 module.exports =
