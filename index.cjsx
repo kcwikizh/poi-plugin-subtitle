@@ -3,7 +3,7 @@ Promise = require 'bluebird'
 path = require 'path'
 async = Promise.coroutine
 fs = Promise.promisifyAll require 'fs-extra'
-PLUGIN_VERSION = '0.1.2'
+PLUGIN_VERSION = '0.1.4'
 webview = $('kan-game webview')
 shipgraph = {}
 voiceMap = {}
@@ -34,12 +34,13 @@ if config.get('plugin.Subtitle.enable', true)
     prior = 5
     match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
     return if not match? or match.length < 3
-    console.log e.newURL
+    console.log e.newURL if process.env.DEBUG
     [..., shipCode, fileName] = match
     apiId = shipgraph[shipCode]
     return if not apiId
     voiceId = voiceMap[apiId][fileName]
     return if not voiceId
+    console.log "#{apiId} #{voiceId}" if process.env.DEBUG
     subtitle = subtitles[apiId]?[voiceId]
     prior = 0 if 8 < voiceId < 11
     if subtitle
