@@ -1,9 +1,7 @@
 {_, SERVER_HOSTNAME} = window
 Promise = require 'bluebird'
 path = require 'path'
-async = Promise.coroutine
 fs = Promise.promisifyAll require 'fs-extra'
-PLUGIN_VERSION = '0.1.7'
 webview = $('kan-game webview')
 shipgraph = {}
 voiceMap = {}
@@ -20,8 +18,7 @@ fs.readFileAsync subtitlesFile, (err, data) ->
   console.log 'Subtitles.json is not exist' if err?.code is 'ENOENT'
   console.error err.code if err?.code isnt 'ENOENT' and err?.code
 
-if config.get('plugin.Subtitle.enable', true)
-  window.addEventListener 'game.response', (e) ->
+handleGameResponse = (e) ->
     {method, path, body, postBody} = e.detail
     {_ships, _decks, _teitokuLv} = window
     switch path
@@ -30,33 +27,35 @@ if config.get('plugin.Subtitle.enable', true)
         # Adjust animation duation
         $('poi-alert #alert-area')?.style?.animationDuration="20s"
     return
-  webview.addEventListener 'did-get-response-details', (e) ->
-    prior = 5
-    match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
-    return if not match? or match.length < 3
-    console.log e.newURL if process.env.DEBUG
-    [..., shipCode, fileName] = match
-    apiId = shipgraph[shipCode]
-    return if not apiId
-    voiceId = voiceMap[apiId][fileName]
-    return if not voiceId
-    console.log "#{apiId} #{voiceId}" if process.env.DEBUG
-    subtitle = subtitles[apiId]?[voiceId]
-    prior = 0 if 8 < voiceId < 11
-    if subtitle
-      window.log "#{$ships[apiId].api_name}：#{subtitle}",
-        priority : prior,
-        stickyFor: 5000
-    else
-      window.log "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！",
-        priority : prior,
-        stickyFor: 5000
-    return
+
+handleGetResponseDetails = (e) ->
+  prior = 5
+  match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
+  return if not match? or match.length < 3
+  console.log e.newURL if process.env.DEBUG
+  [..., shipCode, fileName] = match
+  apiId = shipgraph[shipCode]
+  return if not apiId
+  voiceId = voiceMap[apiId][fileName]
+  return if not voiceId
+  console.log "#{apiId} #{voiceId}" if process.env.DEBUG
+  subtitle = subtitles[apiId]?[voiceId]
+  prior = 0 if 8 < voiceId < 11
+  if subtitle
+    window.log "#{$ships[apiId].api_name}：#{subtitle}",
+      priority : prior,
+      stickyFor: 5000
+  else
+    window.log "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！",
+      priority : prior,
+      stickyFor: 5000
+  return
 
 module.exports =
-  name: 'Subtitle'
-  author: [<a key={0} href="https://github.com/grzhan">grzhan</a>]
-  displayName: <span><FontAwesome key={0} name='microphone' /> kcwiki语音字幕</span>
-  description: '语音字幕插件（舰娘百科支持）'
   show: false
-  version: PLUGIN_VERSION
+  pluginDidLoad: (e) ->
+    window.addEventListener 'game.response', handleGameResponse
+    window.addEventListener 'did-get-response-details', handleGetResponseDetails
+  pluginWillLoad: (e) ->
+    window.removeEventListener 'game.response', handleGameResponse
+    window.removeEventListener 'did-get-response-details', handleGetResponseDetails
