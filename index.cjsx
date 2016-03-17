@@ -55,7 +55,7 @@ module.exports =
   show: false
   pluginDidLoad: (e) ->
     window.addEventListener 'game.response', handleGameResponse
-    window.addEventListener 'did-get-response-details', handleGetResponseDetails
-  pluginWillLoad: (e) ->
+    webview.addEventListener 'did-get-response-details', handleGetResponseDetails
+  pluginWillUnload: (e) ->
     window.removeEventListener 'game.response', handleGameResponse
-    window.removeEventListener 'did-get-response-details', handleGetResponseDetails
+    webview.removeEventListener 'did-get-response-details', handleGetResponseDetails
