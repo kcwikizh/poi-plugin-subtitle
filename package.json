@@ -10,10 +10,18 @@
     "type": "git",
     "url": "git+https://github.com/kcwikizh/poi-plugin-subtitle.git"
   },
-  "author": "Grzhan",
+  "author": {
+    "name": "Grzhan",
+    "url": "https://github.com/grzhan"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kcwikizh/poi-plugin-subtitle/issues"
   },
-  "homepage": "https://github.com/kcwikizh/poi-plugin-subtitle#readme"
+  "homepage": "https://github.com/kcwikizh/poi-plugin-subtitle#readme",
+  "poiPlugin": {
+    "title": "kcwiki语音字幕",
+    "description": "语音字幕插件（舰娘百科支持）",
+    "icon": "fa/microphone"
+  }
 }
