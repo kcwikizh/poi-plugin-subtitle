@@ -18,6 +18,7 @@ fs.readFileAsync subtitlesFile, (err, data) ->
   console.error err.code if err?.code isnt 'ENOENT' and err?.code
 
 initialize = (e) ->
+  return if !localStorage.start2Body?
   body = JSON.parse localStorage.start2Body
   {_ships, _decks, _teitokuLv} = window
   shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
