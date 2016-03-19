@@ -17,12 +17,10 @@ fs.readFileAsync subtitlesFile, (err, data) ->
   console.log 'Subtitles.json is not exist' if err?.code is 'ENOENT'
   console.error err.code if err?.code isnt 'ENOENT' and err?.code
 
-handleGameResponse = (e) ->
-  {method, path, body, postBody} = e.detail
+initialize = (e) ->
+  body = JSON.parse localStorage.start2Body
   {_ships, _decks, _teitokuLv} = window
-  switch path
-    when '/kcsapi/api_start2'
-      shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
+  shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
 
 handleGetResponseDetails = (e) ->
   prior = 5
@@ -49,8 +47,7 @@ handleGetResponseDetails = (e) ->
 module.exports =
   show: false
   pluginDidLoad: (e) ->
-    window.addEventListener 'game.response', handleGameResponse
+    initialize()
     $('kan-game webview').addEventListener 'did-get-response-details', handleGetResponseDetails
   pluginWillUnload: (e) ->
-    window.removeEventListener 'game.response', handleGameResponse
     $('kan-game webview').removeEventListener 'did-get-response-details', handleGetResponseDetails
