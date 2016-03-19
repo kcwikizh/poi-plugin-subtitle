@@ -30,7 +30,6 @@ getSubtitles = async () ->
   try
     [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles.version}"
     throw "获取字幕数据失败" unless repData
-    console.log repData
     rep = JSON.parse repData
     throw "字幕数据异常：#{rep.error}" if rep.error
     return unless rep.version
