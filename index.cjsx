@@ -2,7 +2,6 @@
 Promise = require 'bluebird'
 path = require 'path'
 fs = Promise.promisifyAll require 'fs-extra'
-webview = $('kan-game webview')
 shipgraph = {}
 voiceMap = {}
 voiceKey = [604825,607300,613847,615318,624009,631856,635451,637218,640529,643036,652687,658008,662481,669598,675545,685034,687703,696444,702593,703894,711191,714166,720579,728970,738675,740918,743009,747240,750347,759846,764051,770064,773457,779858,786843,790526,799973,803260,808441,816028,825381,827516,832463,837868,843091,852548,858315,867580,875771,879698,882759,885564,888837,896168]
@@ -18,15 +17,11 @@ fs.readFileAsync subtitlesFile, (err, data) ->
   console.log 'Subtitles.json is not exist' if err?.code is 'ENOENT'
   console.error err.code if err?.code isnt 'ENOENT' and err?.code
 
-handleGameResponse = (e) ->
-    {method, path, body, postBody} = e.detail
-    {_ships, _decks, _teitokuLv} = window
-    switch path
-      when '/kcsapi/api_start2'
-        shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
-        # Adjust animation duation
-        $('poi-alert #alert-area')?.style?.animationDuration="20s"
-    return
+initialize = (e) ->
+  return if !localStorage.start2Body?
+  body = JSON.parse localStorage.start2Body
+  {_ships, _decks, _teitokuLv} = window
+  shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
 
 handleGetResponseDetails = (e) ->
   prior = 5
@@ -49,13 +44,11 @@ handleGetResponseDetails = (e) ->
     window.log "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！",
       priority : prior,
       stickyFor: 5000
-  return
 
 module.exports =
   show: false
   pluginDidLoad: (e) ->
-    window.addEventListener 'game.response', handleGameResponse
-    webview.addEventListener 'did-get-response-details', handleGetResponseDetails
+    initialize()
+    $('kan-game webview').addEventListener 'did-get-response-details', handleGetResponseDetails
   pluginWillUnload: (e) ->
-    window.removeEventListener 'game.response', handleGameResponse
-    webview.removeEventListener 'did-get-response-details', handleGetResponseDetails
+    $('kan-game webview').removeEventListener 'did-get-response-details', handleGetResponseDetails
