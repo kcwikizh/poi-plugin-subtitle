@@ -20,12 +20,6 @@ getSubtitles = async () ->
   subtitlesFile = path.join __dirname, 'subtitles.json'
   data = fs.readFileSync subtitlesFile
   subtitles = JSON.parse data
-  err = yield fs.copyAsync subtitlesFile, "#{subtitlesFile}.tmp"
-  if err
-    window.warn "备份字幕数据失败，请联系有关开发人员",
-      stickyFor: 3000
-    console.error(err)
-    return
   # Update subtitle data from remote server
   try
     [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles.version}"
@@ -48,7 +42,7 @@ getSubtitles = async () ->
       console.error "#{e.name}: #{e.message}"
     else
       console.error e
-    err = yield fs.copyAsync "#{subtitlesFile}.tmp", subtitlesFile
+    err = yield fs.writeFileAsync subtitlesFile, data
     console.error err if err
     subtitles = JSON.parse data
     window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
