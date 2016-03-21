@@ -29,10 +29,12 @@ getSubtitles = async () ->
   # Update subtitle data from remote server
   try
     [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles.version}"
+    console.log repData
     throw "获取字幕数据失败" unless repData
     rep = JSON.parse repData
     throw "字幕数据异常：#{rep.error}" if rep.error
     return unless rep.version
+    console.log rep.version
     for shipIdOrSth,value of rep
       if typeof value isnt "object"
         subtitles[shipIdOrSth] = value
