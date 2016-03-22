@@ -43,8 +43,8 @@ getSubtitles = async () ->
     err = yield fs.writeFileAsync subtitlesFile, data
     console.error err if err
     subtitles = JSON.parse data
-    window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
-      stickyFor: 5000
+    # window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
+    #   stickyFor: 5000
     return
   window.success "语音字幕数据更新成功(#{subtitles.version})",
     stickyFor: 3000
