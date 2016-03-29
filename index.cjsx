@@ -8,7 +8,8 @@ voiceMap = {}
 shipgraph = {}
 subtitles = {}
 REMOTE_HOST = 'http://api.kcwiki.moe/subtitles/diff'
-subtitlesFile = path.join __dirname, 'subtitles.json'
+subtitlesFile = path.join APPDATA_PATH, 'poi-plugin-subtitle', 'subtitles.json'
+subtitlesFileBackup = path.join __dirname, 'subtitles.json'
 voiceKey = [604825,607300,613847,615318,624009,631856,635451,637218,640529,643036,652687,658008,662481,669598,675545,685034,687703,696444,702593,703894,711191,714166,720579,728970,738675,740918,743009,747240,750347,759846,764051,770064,773457,779858,786843,790526,799973,803260,808441,816028,825381,827516,832463,837868,843091,852548,858315,867580,875771,879698,882759,885564,888837,896168]
 convertFilename = (shipId, voiceId) ->
   return (shipId + 7) * 17 * (voiceKey[voiceId] - voiceKey[voiceId - 1]) % 99173 + 100000
@@ -17,9 +18,17 @@ for shipNo in [1..500]
   voiceMap[shipNo][convertFilename(shipNo,i)] = i for i in [1..voiceKey.length]
 
 getSubtitles = async () ->
-  subtitlesFile = path.join __dirname, 'subtitles.json'
-  data = fs.readFileSync subtitlesFile
+  err = yield fs.ensureFileAsync subtitlesFile
+  data = yield fs.readFileAsync subtitlesFile
+  data = "{}" if not data or data.length is 0
   subtitles = JSON.parse data
+  dataBackup = yield fs.readFileAsync subtitlesFileBackup
+  subtitlesBackup = JSON.parse dataBackup
+  if not subtitles?['version'] or +subtitles?['version'] < +subtitlesBackup?['version']
+    data = dataBackup
+    subtitles = subtitlesBackup
+    err = yield fs.writeFileAsync subtitlesFile, data
+    console.error err if err
   # Update subtitle data from remote server
   try
     [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles.version}"
