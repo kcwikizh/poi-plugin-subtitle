@@ -4,9 +4,11 @@ path = require 'path'
 async = Promise.coroutine
 fs = Promise.promisifyAll require('fs-extra'), { multiArgs: true }
 request = Promise.promisifyAll require('request'), { multiArgs: true }
+dbg.extra('subtitlesAudioResponse')
 voiceMap = {}
 shipgraph = {}
 subtitles = {}
+timeoutHandle = 0
 REMOTE_HOST = 'http://api.kcwiki.moe/subtitles/diff'
 subtitlesFile = path.join APPDATA_PATH, 'poi-plugin-subtitle', 'subtitles.json'
 subtitlesFileBackup = path.join __dirname, 'subtitles.json'
@@ -65,32 +67,54 @@ initialize = (e) ->
   shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
   getSubtitles()
 
+show = (text, prior, stickyFor) ->
+  window.log "#{text}",
+    priority : prior,
+    stickyFor: stickyFor
+
+handleGameResponse = (e) ->
+  clearTimeout(timeoutHandle)
+
 handleGetResponseDetails = (e) ->
   prior = 5
   match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
   return if not match? or match.length < 3
-  console.log e.newURL if process.env.DEBUG
+  console.log e.newURL if dbg.extra('subtitlesAudioResponse').isEnabled()
   [..., shipCode, fileName] = match
   apiId = shipgraph[shipCode]
   return if not apiId
   voiceId = voiceMap[apiId][fileName]
   return if not voiceId
-  console.log "#{apiId} #{voiceId}" if process.env.DEBUG
+  console.log "#{apiId} #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   subtitle = subtitles[apiId]?[voiceId]
   prior = 0 if 8 < voiceId < 11
-  if subtitle
-    window.log "#{$ships[apiId].api_name}：#{subtitle}",
-      priority : prior,
-      stickyFor: 5000
+  if voiceId < 30
+    if subtitle
+      show "#{$ships[apiId].api_name}：#{subtitle}", prior, 5000
+    else
+      show "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000          
   else
-    window.log "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！",
-      priority : prior,
-      stickyFor: 5000
+    now = new Date()
+    sharpTime = new Date()
+    sharpTime.setHours now.getHours()+1
+    sharpTime.setMinutes 0
+    sharpTime.setSeconds 0
+    sharpTime.setMilliseconds 0
+    diff = sharpTime - now
+    diff = 0 if diff < 0
+    timeoutHandle = setTimeout( ->
+      if subtitle
+        show "#{$ships[apiId].api_name}：#{subtitle}", prior, 5000
+      else
+        show "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
+    ,diff)
 
 module.exports =
   show: false
   pluginDidLoad: (e) ->
     initialize()
     $('kan-game webview').addEventListener 'did-get-response-details', handleGetResponseDetails
+    window.addEventListener 'game.response', handleGameResponse
   pluginWillUnload: (e) ->
     $('kan-game webview').removeEventListener 'did-get-response-details', handleGetResponseDetails
+    window.removeEventListener 'game.response', handleGameResponse
