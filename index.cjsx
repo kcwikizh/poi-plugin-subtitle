@@ -19,6 +19,8 @@ for shipNo in [1..500]
   voiceMap[shipNo] = {}
   voiceMap[shipNo][convertFilename(shipNo,i)] = i for i in [1..voiceKey.length]
 
+__ = i18n["poi-plugin-subtitle"].__.bind(i18n["poi-plugin-subtitle"])
+
 getSubtitles = async () ->
   err = yield fs.ensureFileAsync subtitlesFile
   data = yield fs.readFileAsync subtitlesFile
@@ -87,10 +89,11 @@ handleGetResponseDetails = (e) ->
   return if not voiceId
   console.log "#{apiId} #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   subtitle = subtitles[apiId]?[voiceId]
+  console.log "i18n: #{__(apiId+'.'+voiceId)}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   prior = 0 if 8 < voiceId < 11
   if voiceId < 30
     if subtitle
-      show "#{$ships[apiId].api_name}：#{subtitle}", prior, 5000
+      show "#{$ships[apiId].api_name}：#{__(apiId+'.'+voiceId)}", prior, 5000
     else
       show "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000          
   else
