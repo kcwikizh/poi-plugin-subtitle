@@ -60,6 +60,7 @@ getSubtitles = async () ->
 				subtitles_zhTW[shipIdOrSth] = {} unless subtitles_zhTW[shipIdOrSth]
 				subtitles_zhTW[shipIdOrSth][voiceId] = Traditionalized(text) for voiceId, text of value
 		err = yield fs.writeFileAsync subtitlesFile, data
+		err = yield fs.writeFileAsync subtitlesFile_zhTW, JSON.stringify(subtitles_zhTW, null, '\t')
 		console.error err if err
 	# Update subtitle data from remote server
 	try
