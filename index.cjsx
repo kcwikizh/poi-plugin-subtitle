@@ -44,22 +44,30 @@ Traditionalized = (cc) ->
   str
 
 getSubtitles = async () ->
+  # Load zh-CN
   err = yield fs.ensureFileAsync subtitlesFile
   data = yield fs.readFileAsync subtitlesFile
   data = "{}" if not data or data.length is 0
   subtitles = JSON.parse data
+  # Load zh-TW
+  err = yield fs.ensureFileAsync subtitlesFile_zhTW
+  data_zhTW = yield fs.readFileAsync subtitlesFile_zhTW
+  data_zhTW = "{}" if not data_zhTW or data_zhTW.length is 0
+  subtitles_zhTW = JSON.parse data_zhTW
+  # Load backup subtitle
   dataBackup = yield fs.readFileAsync subtitlesFileBackup
   subtitlesBackup = JSON.parse dataBackup
   if not subtitles?['version'] or +subtitles?['version'] < +subtitlesBackup?['version']
     data = dataBackup
     subtitles = subtitlesBackup
+    err = yield fs.writeFileAsync subtitlesFile, data
+    # Convert backup subtitle to zh-TW and save
     for shipIdOrSth, value of subtitlesBackup
       if typeof value isnt 'object'
         subtitles_zhTW[shipIdOrSth] = value
       else
         subtitles_zhTW[shipIdOrSth] = {} unless subtitles_zhTW[shipIdOrSth]
         subtitles_zhTW[shipIdOrSth][voiceId] = Traditionalized(text) for voiceId, text of value
-    err = yield fs.writeFileAsync subtitlesFile, data
     err = yield fs.writeFileAsync subtitlesFile_zhTW, JSON.stringify(subtitles_zhTW, null, '\t')
     console.error err if err
   # Update subtitle data from remote server
