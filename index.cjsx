@@ -9,12 +9,12 @@ dbg.extra('subtitlesAudioResponse')
 voiceMap = {}
 shipgraph = {}
 subtitles = {}
-subtitles_zhTW = {}
+subtitlesI18nPath = {}
 timeoutHandle = 0
 REMOTE_HOST = 'http://api.kcwiki.moe/subtitles/diff'
-subtitlesFile = path.join APPDATA_PATH, 'plugins', 'node_modules', 'poi-plugin-subtitle', 'i18n', 'zh-CN.json'
-subtitlesFile_zhTW = path.join APPDATA_PATH, 'plugins', 'node_modules', 'poi-plugin-subtitle', 'i18n', 'zh-TW.json'
-subtitlesFileBackup = path.join __dirname, 'subtitles.json'
+langs = ['zh-CN', 'zh-TW']
+subtitlesI18nPath[lang] = path.join(APPDATA_PATH, 'plugins', 'node_modules', 'poi-plugin-subtitle', 'i18n', "#{lang}.json") for lang in langs
+subtitlesBackupPath = path.join __dirname, 'subtitles.json'
 voiceKey = [604825,607300,613847,615318,624009,631856,635451,637218,640529,643036,652687,658008,662481,669598,675545,685034,687703,696444,702593,703894,711191,714166,720579,728970,738675,740918,743009,747240,750347,759846,764051,770064,773457,779858,786843,790526,799973,803260,808441,816028,825381,827516,832463,837868,843091,852548,858315,867580,875771,879698,882759,885564,888837,896168]
 convertFilename = (shipId, voiceId) ->
   return (shipId + 7) * 17 * (voiceKey[voiceId] - voiceKey[voiceId - 1]) % 99173 + 100000
@@ -24,64 +24,66 @@ for shipNo in [1..500]
 
 __ = i18n["poi-plugin-subtitle"].__.bind(i18n["poi-plugin-subtitle"])
 
-getSubtitles = async () ->
-  # Load zh-CN
-  err = yield fs.ensureFileAsync subtitlesFile
-  data = yield fs.readFileAsync subtitlesFile
+loadSubtitles = async (_path) ->
+  err = yield fs.ensureFileAsync _path
+  data = yield fs.readFileAsync _path
   data = "{}" if not data or data.length is 0
-  subtitles = JSON.parse data
-  # Load zh-TW
-  err = yield fs.ensureFileAsync subtitlesFile_zhTW
-  data_zhTW = yield fs.readFileAsync subtitlesFile_zhTW
-  data_zhTW = "{}" if not data_zhTW or data_zhTW.length is 0
-  subtitles_zhTW = JSON.parse data_zhTW
-  # Load backup subtitle
-  dataBackup = yield fs.readFileAsync subtitlesFileBackup
+  JSON.parse data
+
+loadBackupSubtitles = async () ->
+  dataBackup = yield fs.readFileAsync subtitlesBackupPath
   subtitlesBackup = JSON.parse dataBackup
-  if not subtitles?['version'] or +subtitles?['version'] < +subtitlesBackup?['version']
+  if not subtitles['zh-CN']?.version or +subtitles['zh-CN']?.version < +subtitlesBackup?.version
     data = dataBackup
-    subtitles = subtitlesBackup
-    err = yield fs.writeFileAsync subtitlesFile, data
+    subtitles['zh-CN'] = subtitlesBackup
+    err = yield fs.writeFileAsync subtitlesI18nPath['zh-CN'], data
     # Convert backup subtitle to zh-TW and save
     for shipIdOrSth, value of subtitlesBackup
       if typeof value isnt 'object'
-        subtitles_zhTW[shipIdOrSth] = value
+        subtitles['zh-TW'][shipIdOrSth] = value
       else
-        subtitles_zhTW[shipIdOrSth] = {} unless subtitles_zhTW[shipIdOrSth]
-        subtitles_zhTW[shipIdOrSth][voiceId] = Traditionalized(text) for voiceId, text of value
-    err = yield fs.writeFileAsync subtitlesFile_zhTW, JSON.stringify(subtitles_zhTW, null, '\t')
+        subtitles['zh-TW'][shipIdOrSth] = {} unless subtitles['zh-TW'][shipIdOrSth]
+        subtitles['zh-TW'][shipIdOrSth][voiceId] = Traditionalized(text) for voiceId, text of value
+    err = yield fs.writeFileAsync subtitlesI18nPath['zh-TW'], JSON.stringify(subtitles['zh-TW'], null, '\t')
     console.error err if err
+  dataBackup
+
+getSubtitles = async () ->
+  # Load I18n Data
+  subtitles[lang] = loadSubtitles(subtitlesI18nPath[lang]) for lang in langs
+  # Load backup subtitle
+  data = loadBackupSubtitles()
   # Update subtitle data from remote server
   try
-    [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles.version}"
+    [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles['zh-CN'].version}"
     throw "获取字幕数据失败" unless repData
     rep = JSON.parse repData
     throw "字幕数据异常：#{rep.error}" if rep.error
     return unless rep.version
     for shipIdOrSth,value of rep
       if typeof value isnt "object"
-        subtitles[shipIdOrSth] = value
-        subtitles_zhTW[shipIdOrSth] = value
+        subtitles[lang][shipIdOrSth] = value for lang in langs
       else
-        subtitles[shipIdOrSth] = {} unless subtitles[shipIdOrSth]
-        subtitles[shipIdOrSth][voiceId] = text for voiceId, text of value
-        subtitles_zhTW[shipIdOrSth] = {} unless subtitles_zhTW[shipIdOrSth]
-        subtitles_zhTW[shipIdOrSth][voiceId] = Traditionalized(text) for voiceId, text of value
-    err = yield fs.writeFileAsync subtitlesFile, JSON.stringify(subtitles, null, '\t')
-    err = yield fs.writeFileAsync subtitlesFile_zhTW, JSON.stringify(subtitles_zhTW, null, '\t')
-    throw err if err
+        for lang in langs
+          subtitles[lang][shipIdOrSth] = {} unless subtitles[lang][shipIdOrSth]
+        for voiceId, text of value
+          subtitles['zh-CN'][shipIdOrSth][voiceId] = text 
+          subtitles['zh-TW'][shipIdOrSth][voiceId] = Traditionalized(text)
+    for lang in langs
+      err = yield fs.writeFileAsync subtitlesI18nPath[lang], JSON.stringify(subtitles[lang], null, '\t')
+      throw err if err
   catch e
     if e instanceof Error
       console.error "#{e.name}: #{e.message}"
     else
       console.error e
-    err = yield fs.writeFileAsync subtitlesFile, data
+    err = yield fs.writeFileAsync subtitlesI18nPath['zh-CN'], data
     console.error err if err
-    subtitles = JSON.parse data
+    subtitles['zh-CN'] = JSON.parse data
     # window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
     #   stickyFor: 5000
     return
-  window.success "语音字幕数据更新成功(#{subtitles.version})",
+  window.success "语音字幕数据更新成功(#{subtitles['zh-CN'].version})",
     stickyFor: 3000
 
 initialize = (e) ->
@@ -91,7 +93,7 @@ initialize = (e) ->
   shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
   getSubtitles()
 
-show = (text, prior, stickyFor) ->
+alert = (text, prior, stickyFor) ->
   window.log "#{text}",
     priority : prior,
     stickyFor: stickyFor
@@ -110,19 +112,19 @@ handleGetResponseDetails = (e) ->
   voiceId = voiceMap[apiId][fileName]
   return if not voiceId
   console.log "#{apiId} #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
-  subtitle = subtitles[apiId]?[voiceId]
+  subtitle = subtitles['zh-CN'][apiId]?[voiceId]
   console.log "i18n: #{__(apiId+'.'+voiceId)}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   prior = 0 if 8 < voiceId < 11
-
+  shipName = $ships[apiId].api_name
   # Current not supprot for en-US and ja-JP, set default to zh-TW
   if i18n["poi-plugin-subtitle"].locale == 'en-US' or i18n["poi-plugin-subtitle"].locale == 'ja-JP'
     i18n["poi-plugin-subtitle"].locale = 'zh-TW'
 
   if voiceId < 30
     if subtitle
-      show "#{$ships[apiId].api_name}：#{__(apiId+'.'+voiceId)}", prior, 5000
+      alert "#{shipName}：#{__(apiId+'.'+voiceId)}", prior, 5000
     else
-      show "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
+      alert "本【#{shipName}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
   else
     now = new Date()
     sharpTime = new Date()
@@ -134,9 +136,9 @@ handleGetResponseDetails = (e) ->
     diff = 0 if diff < 0
     timeoutHandle = setTimeout( ->
       if subtitle
-        show "#{$ships[apiId].api_name}：#{subtitle}", prior, 5000
+        alert "#{shipName}：#{__(apiId+'.'+voiceId)}", prior, 5000
       else
-        show "本【#{$ships[apiId].api_name}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
+        alert "本【#{shipName}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
     ,diff)
 
 module.exports =
