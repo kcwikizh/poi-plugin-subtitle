@@ -13,7 +13,8 @@ subtitlesI18nPath = {}
 timeoutHandle = 0
 REMOTE_HOST = 'http://api.kcwiki.moe/subtitles/diff'
 langs = ['zh-CN', 'zh-TW']
-subtitlesI18nPath[lang] = path.join(APPDATA_PATH, 'plugins', 'node_modules', 'poi-plugin-subtitle', 'i18n', "#{lang}.json") for lang in langs
+i18nSubtitleBaseDir = path.join(APPDATA_PATH, 'poi-plugin-subtitle', 'i18n')
+subtitlesI18nPath[lang] = path.join(i18nSubtitleBaseDir, "#{lang}.json") for lang in langs
 subtitlesBackupPath = path.join __dirname, 'subtitles.json'
 voiceKey = [604825,607300,613847,615318,624009,631856,635451,637218,640529,643036,652687,658008,662481,669598,675545,685034,687703,696444,702593,703894,711191,714166,720579,728970,738675,740918,743009,747240,750347,759846,764051,770064,773457,779858,786843,790526,799973,803260,808441,816028,825381,827516,832463,837868,843091,852548,858315,867580,875771,879698,882759,885564,888837,896168]
 convertFilename = (shipId, voiceId) ->
@@ -23,6 +24,17 @@ for shipNo in [1..500]
   voiceMap[shipNo][convertFilename(shipNo,i)] = i for i in [1..voiceKey.length]
 
 __ = i18n["poi-plugin-subtitle"].__.bind(i18n["poi-plugin-subtitle"])
+___ = {} # i18n for subtitle data
+
+initSubtitlesI18n = ->
+  i18n['poi-plugin-subtitle-data'] = new(require 'i18n-2')
+    locales: langs,
+    defaultLocale: 'zh-CN',
+    directory: i18nSubtitleBaseDir,
+    devMode: false,
+    extension: '.json'
+  i18n['poi-plugin-subtitle-data'].setLocale(i18n["poi-plugin-subtitle"].locale)
+  ___ = i18n["poi-plugin-subtitle-data"].__.bind(i18n["poi-plugin-subtitle-data"])
 
 loadSubtitles = async (_path) ->
   err = yield fs.ensureFileAsync _path
@@ -50,9 +62,10 @@ loadBackupSubtitles = async () ->
 
 getSubtitles = async () ->
   # Load I18n Data
-  subtitles[lang] = loadSubtitles(subtitlesI18nPath[lang]) for lang in langs
+  for lang in langs
+    subtitles[lang] = yield loadSubtitles(subtitlesI18nPath[lang])
   # Load backup subtitle
-  data = loadBackupSubtitles()
+  data = yield loadBackupSubtitles()
   # Update subtitle data from remote server
   try
     [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles['zh-CN'].version}"
@@ -92,6 +105,7 @@ initialize = (e) ->
   {_ships, _decks, _teitokuLv} = window
   shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
   getSubtitles()
+  initSubtitlesI18n()
 
 alert = (text, prior, stickyFor) ->
   window.log "#{text}",
@@ -113,7 +127,7 @@ handleGetResponseDetails = (e) ->
   return if not voiceId
   console.log "#{apiId} #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   subtitle = subtitles['zh-CN'][apiId]?[voiceId]
-  console.log "i18n: #{__(apiId+'.'+voiceId)}" if dbg.extra('subtitlesAudioResponse').isEnabled()
+  console.log "i18n: #{___(apiId+'.'+voiceId)}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   prior = 0 if 8 < voiceId < 11
   shipName = $ships[apiId].api_name
   # Current not supprot for en-US and ja-JP, set default to zh-TW
@@ -122,7 +136,7 @@ handleGetResponseDetails = (e) ->
 
   if voiceId < 30
     if subtitle
-      alert "#{shipName}：#{__(apiId+'.'+voiceId)}", prior, 5000
+      alert "#{shipName}：#{___(apiId+'.'+voiceId)}", prior, 5000
     else
       alert "本【#{shipName}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
   else
@@ -136,7 +150,7 @@ handleGetResponseDetails = (e) ->
     diff = 0 if diff < 0
     timeoutHandle = setTimeout( ->
       if subtitle
-        alert "#{shipName}：#{__(apiId+'.'+voiceId)}", prior, 5000
+        alert "#{shipName}：#{___(apiId+'.'+voiceId)}", prior, 5000
       else
         alert "本【#{shipName}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
     ,diff)
