@@ -27,6 +27,9 @@ __ = i18n["poi-plugin-subtitle"].__.bind(i18n["poi-plugin-subtitle"])
 ___ = {} # i18n for subtitle data
 
 initSubtitlesI18n = ->
+  # Current not supprot for en-US and ja-JP, set default to zh-TW
+  if i18n["poi-plugin-subtitle"].locale == 'en-US' or i18n["poi-plugin-subtitle"].locale == 'ja-JP'
+    i18n["poi-plugin-subtitle"].locale = 'zh-TW'
   i18n['poi-plugin-subtitle-data'] = new(require 'i18n-2')
     locales: langs,
     defaultLocale: 'zh-CN',
@@ -96,7 +99,7 @@ getSubtitles = async () ->
     # window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
     #   stickyFor: 5000
     return
-  window.success "语音字幕数据更新成功(#{subtitles['zh-CN'].version})",
+  window.success "#{__('Update Success')}(#{subtitles['zh-CN'].version})",
     stickyFor: 3000
 
 initialize = (e) ->
@@ -130,15 +133,11 @@ handleGetResponseDetails = (e) ->
   console.log "i18n: #{___(apiId+'.'+voiceId)}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   prior = 0 if 8 < voiceId < 11
   shipName = $ships[apiId].api_name
-  # Current not supprot for en-US and ja-JP, set default to zh-TW
-  if i18n["poi-plugin-subtitle"].locale == 'en-US' or i18n["poi-plugin-subtitle"].locale == 'ja-JP'
-    i18n["poi-plugin-subtitle"].locale = 'zh-TW'
-
   if voiceId < 30
     if subtitle
       alert "#{shipName}：#{___(apiId+'.'+voiceId)}", prior, 5000
     else
-      alert "本【#{shipName}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
+      alert __('Subtitle Miss',shipName), prior, 5000
   else
     now = new Date()
     sharpTime = new Date()
@@ -152,7 +151,7 @@ handleGetResponseDetails = (e) ->
       if subtitle
         alert "#{shipName}：#{___(apiId+'.'+voiceId)}", prior, 5000
       else
-        alert "本【#{shipName}】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！", prior, 5000
+        alert __('Subtitle Miss',shipName), prior, 5000
     ,diff)
 
 module.exports =
