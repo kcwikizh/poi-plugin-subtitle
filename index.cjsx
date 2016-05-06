@@ -74,7 +74,7 @@ getSubtitles = async () ->
     [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles['zh-CN'].version}"
     throw "获取字幕数据失败" unless repData
     rep = JSON.parse repData
-    throw "字幕数据异常：#{rep.error}" if rep.error
+    throw "字幕数据异常：#{rep.reason}" if rep.result is 'error'
     return unless rep.version
     for shipIdOrSth,value of rep
       if typeof value isnt "object"
