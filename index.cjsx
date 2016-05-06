@@ -98,6 +98,8 @@ getSubtitles = async () ->
     subtitles['zh-CN'] = JSON.parse data
     # window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
     #   stickyFor: 5000
+  finally
+    initSubtitlesI18n()
     return
   window.success "#{__('Update Success')}(#{subtitles['zh-CN'].version})",
     stickyFor: 3000
@@ -108,7 +110,6 @@ initialize = (e) ->
   {_ships, _decks, _teitokuLv} = window
   shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
   getSubtitles()
-  initSubtitlesI18n()
 
 alert = (text, prior, stickyFor) ->
   window.log "#{text}",
