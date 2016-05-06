@@ -88,6 +88,8 @@ getSubtitles = async () ->
     for lang in langs
       err = yield fs.writeFileAsync subtitlesI18nPath[lang], JSON.stringify(subtitles[lang], null, '\t')
       throw err if err
+    window.success "#{__('Update Success')}(#{subtitles['zh-CN'].version})",
+      stickyFor: 3000
   catch e
     if e instanceof Error
       console.error "#{e.name}: #{e.message}"
@@ -101,8 +103,6 @@ getSubtitles = async () ->
   finally
     initSubtitlesI18n()
     return
-  window.success "#{__('Update Success')}(#{subtitles['zh-CN'].version})",
-    stickyFor: 3000
 
 initialize = (e) ->
   return if !localStorage.start2Body?
