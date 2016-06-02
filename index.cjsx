@@ -12,7 +12,7 @@ subtitles = {}
 subtitlesI18nPath = {}
 subtitlesBackupPath = {}
 timeoutHandle = 0
-REMOTE_HOST = 'http://api.kcwiki.moe/subtitles/diff'
+REMOTE_HOST = 'http://api.kcwiki.moe/subtitles'
 langs = ['zh-CN', 'zh-TW', 'ja-JP']
 i18nSubtitleBaseDir = path.join(APPDATA_PATH, 'poi-plugin-subtitle', 'i18n')
 subtitlesI18nPath[lang] = path.join(i18nSubtitleBaseDir, "#{lang}.json") for lang in langs
@@ -30,14 +30,17 @@ ___ = {} # i18n for subtitle data
 initSubtitlesI18n = ->
   # Current not supprot for en-US and ja-JP, set default to zh-TW
   if i18n["poi-plugin-subtitle"].locale not in langs
-    i18n["poi-plugin-subtitle"].locale = 'ja-JP'
+    i18n["poi-plugin-subtitle"].setLocale 'ja-JP'
+    locale = 'ja-JP'
+  else
+    locale = i18n["poi-plugin-subtitle"].locale
   i18n['poi-plugin-subtitle-data'] = new(require 'i18n-2')
     locales: langs,
-    defaultLocale: 'zh-CN',
+    defaultLocale: 'ja-JP',
     directory: i18nSubtitleBaseDir,
     devMode: false,
     extension: '.json'
-  i18n['poi-plugin-subtitle-data'].setLocale(i18n["poi-plugin-subtitle"].locale)
+  i18n['poi-plugin-subtitle-data'].setLocale(locale)
   ___ = i18n["poi-plugin-subtitle-data"].__.bind(i18n["poi-plugin-subtitle-data"])
 
 loadSubtitles = async (_path) ->
@@ -47,7 +50,10 @@ loadSubtitles = async (_path) ->
   JSON.parse data
 
 loadBackupSubtitles = async () ->
-  locale = i18n["poi-plugin-subtitle"].locale
+  if i18n["poi-plugin-subtitle"].locale not in langs
+    locale = 'ja-JP'
+  else
+    locale = i18n["poi-plugin-subtitle"].locale
   abbr = locale[...2]
   if abbr is 'zh'
     dataBackup = yield fs.readFileAsync subtitlesBackupPath['zh-CN']
@@ -81,9 +87,13 @@ getSubtitles = async () ->
   # Load backup subtitle
   data = yield loadBackupSubtitles()
   # Update subtitle data from remote server
-  locale = i18n["poi-plugin-subtitle"].locale
+  if i18n["poi-plugin-subtitle"].locale not in langs
+    locale = 'ja-JP'
+  else
+    locale = i18n["poi-plugin-subtitle"].locale
   abbr = locale[...2]
-  url = if abbr is 'zh' then "#{REMOTE_HOST}/#{subtitles['zh-CN'].version}"  else "#{REMOTE_HOST}/#{abbr}/#{subtitles[locale].version}"
+  abbr = 'jp' if abbr is 'ja'
+  url = if abbr is 'zh' then "#{REMOTE_HOST}/diff/#{subtitles['zh-CN'].version}"  else "#{REMOTE_HOST}/#{abbr}/diff/#{subtitles[locale].version}"
   try
     [response, repData] = yield request.getAsync url
     throw "获取字幕数据失败" unless repData
@@ -153,6 +163,8 @@ handleGetResponseDetails = (e) ->
   return if not apiId
   voiceId = voiceMap[apiId][fileName]
   return if not voiceId
+  if i18n["poi-plugin-subtitle"].locale not in langs
+    i18n["poi-plugin-subtitle-data"].setLocale 'ja-JP'
   console.log "#{apiId} #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
   subtitle = subtitles['zh-CN'][apiId]?[voiceId]
   console.log "i18n: #{___(apiId+'.'+voiceId)}" if dbg.extra('subtitlesAudioResponse').isEnabled()
