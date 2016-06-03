@@ -49,20 +49,17 @@ loadSubtitles = async (_path) ->
   data = "{}" if not data or data.length is 0
   JSON.parse data
 
-loadBackupSubtitles = async () ->
-  if i18n["poi-plugin-subtitle"].locale not in langs
-    locale = 'ja-JP'
-  else
-    locale = i18n["poi-plugin-subtitle"].locale
+loadBackupSubtitles = async (locale) ->
   abbr = locale[...2]
   if abbr is 'zh'
     dataBackup = yield fs.readFileAsync subtitlesBackupPath['zh-CN']
     subtitlesBackup = JSON.parse dataBackup
-    if not subtitles['zh-CN']?.version or +subtitles['zh-CN']?.version < +subtitlesBackup?.version
+    if not subtitles['zh-CN']?.version or +subtitles['zh-CN']?.version < +subtitlesBackup?.version or not subtitles['zh-TW']?.version
       data = dataBackup
       subtitles['zh-CN'] = subtitlesBackup
       err = yield fs.writeFileAsync subtitlesI18nPath['zh-CN'], data
       # Convert backup subtitle to zh-TW and save
+      subtitles['zh-TW'] = {}
       for shipIdOrSth, value of subtitlesBackup
         if typeof value isnt 'object'
           subtitles['zh-TW'][shipIdOrSth] = value
@@ -81,11 +78,13 @@ loadBackupSubtitles = async () ->
   dataBackup
 
 getSubtitles = async () ->
+  dataBackup = {}
   # Load I18n Data
   for lang in langs
+    continue if lang is 'zh-TW'
     subtitles[lang] = yield loadSubtitles(subtitlesI18nPath[lang])
-  # Load backup subtitle
-  data = yield loadBackupSubtitles()
+    # Load backup subtitle
+    dataBackup[lang] = yield loadBackupSubtitles(lang)
   # Update subtitle data from remote server
   if i18n["poi-plugin-subtitle"].locale not in langs
     locale = 'ja-JP'
@@ -99,39 +98,39 @@ getSubtitles = async () ->
     throw "获取字幕数据失败" unless repData
     rep = JSON.parse repData
     throw "字幕数据异常：#{rep.reason}" if rep.result is 'error'
-    return unless rep.version
-    for shipIdOrSth,value of rep
-      if abbr is 'zh'
-        if typeof value isnt "object"
-          subtitles[lang][shipIdOrSth] = value for lang in ['zh-CN', 'zh-TW']
+    if rep.version
+      for shipIdOrSth,value of rep
+        if abbr is 'zh'
+          if typeof value isnt "object"
+            subtitles[lang][shipIdOrSth] = value for lang in ['zh-CN', 'zh-TW']
+          else
+            for lang in ['zh-CN', 'zh-TW']
+              subtitles[lang][shipIdOrSth] = {} unless subtitles[lang][shipIdOrSth]
+            for voiceId, text of value
+              subtitles['zh-CN'][shipIdOrSth][voiceId] = text
+              subtitles['zh-TW'][shipIdOrSth][voiceId] = Traditionalized(text)
         else
-          for lang in ['zh-CN', 'zh-TW']
-            subtitles[lang][shipIdOrSth] = {} unless subtitles[lang][shipIdOrSth]
-          for voiceId, text of value
-            subtitles['zh-CN'][shipIdOrSth][voiceId] = text
-            subtitles['zh-TW'][shipIdOrSth][voiceId] = Traditionalized(text)
-      else
-        if typeof value isnt "object"
-          subtitles[locale][shipIdOrSth] = value
-        else
-          subtitles[locale][shipIdOrSth] = {} unless subtitles[locale][shipIdOrSth]
-          for voiceId, text of value
-            subtitles[locale][shipIdOrSth][voiceId] = text
+          if typeof value isnt "object"
+            subtitles[locale][shipIdOrSth] = value
+          else
+            subtitles[locale][shipIdOrSth] = {} unless subtitles[locale][shipIdOrSth]
+            for voiceId, text of value
+              subtitles[locale][shipIdOrSth][voiceId] = text
+      version = if abbr is 'zh' then subtitles['zh-CN'].version else subtitles[locale].version
+      window.success "#{__('Update Success')}(#{version})",
+        stickyFor: 3000
     for lang in langs
       err = yield fs.writeFileAsync subtitlesI18nPath[lang], JSON.stringify(subtitles[lang], null, '\t')
       throw err if err
-    version = if abbr is 'zh' then subtitles['zh-CN'].version else subtitles[locale].version
-    window.success "#{__('Update Success')}(#{version})",
-      stickyFor: 3000
   catch e
     if e instanceof Error
       console.error "#{e.name}: #{e.message}"
     else
       console.error e
     if locale isnt 'zh-TW'
-      err = yield fs.writeFileAsync subtitlesI18nPath[locale], data
+      err = yield fs.writeFileAsync subtitlesI18nPath[locale], dataBackup[locale]
       console.error err if err
-      subtitles[locale] = JSON.parse data
+      subtitles[locale] = JSON.parse dataBackup[locale]
     # window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
     #   stickyFor: 5000
   finally
