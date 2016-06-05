@@ -1,5 +1,7 @@
 {
 	"Subtitle Miss": "本【%s】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！",
 	"Update Success": "语音字幕数据更新成功",
-	"Update Failed": "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据"
+	"Update Failed": "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
+	"Subtitle": "kcwiki语音字幕",
+	"Display subtitles (supported by kcwiki)": "语音字幕插件（舰娘百科支持）"
 }
