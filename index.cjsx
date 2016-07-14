@@ -71,7 +71,8 @@ getSubtitles = async () ->
   data = yield loadBackupSubtitles()
   # Update subtitle data from remote server
   try
-    [response, repData] = yield request.getAsync "#{REMOTE_HOST}/#{subtitles['zh-CN'].version}"
+    response = yield request.getAsync "#{REMOTE_HOST}/#{subtitles['zh-CN'].version}"
+    repData = if response instanceof Array then response[1] else response.body
     throw "获取字幕数据失败" unless repData
     rep = JSON.parse repData
     throw "字幕数据异常：#{rep.reason}" if rep.result is 'error'
@@ -92,7 +93,7 @@ getSubtitles = async () ->
       stickyFor: 3000
   catch e
     if e instanceof Error
-      console.error "#{e.name}: #{e.message}"
+      console.error "#{e.name}: #{e.message}\n#{e.stack}"
     else
       console.error e
     err = yield fs.writeFileAsync subtitlesI18nPath['zh-CN'], data
@@ -105,10 +106,13 @@ getSubtitles = async () ->
     return
 
 initialize = (e) ->
-  return if !localStorage.start2Body?
-  body = JSON.parse localStorage.start2Body
+  if window.getStore?
+    api_mst_shipgraph = window.getStore('const.$shipgraph')
+  else
+    return if !localStorage.start2Body?
+    {api_mst_shipgraph} = JSON.parse localStorage.start2Body
   {_ships, _decks, _teitokuLv} = window
-  shipgraph[ship.api_filename] = ship.api_id for ship in body.api_mst_shipgraph
+  shipgraph[ship.api_filename] = ship.api_id for ship in api_mst_shipgraph
   getSubtitles()
 
 alert = (text, prior, stickyFor) ->
