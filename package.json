@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-subtitle",
-  "version": "0.2.2",
+  "version": "0.4.0-beta.2",
   "description": "A poi plugin which can display subtitles of kanmusu voices in alert panel",
   "main": "index.cjsx",
   "scripts": {
@@ -20,9 +20,9 @@
   },
   "homepage": "https://github.com/kcwikizh/poi-plugin-subtitle#readme",
   "poiPlugin": {
-    "title": "kcwiki语音字幕",
+    "title": "Subtitle",
     "icon": "microphone",
-    "description": "语音字幕插件（舰娘百科支持）",
+    "description": "Display subtitles (supported by kcwiki)",
     "priority": 100
   }
 }
