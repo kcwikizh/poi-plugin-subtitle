@@ -20,9 +20,9 @@
   },
   "homepage": "https://github.com/kcwikizh/poi-plugin-subtitle#readme",
   "poiPlugin": {
-    "title": "Subtitle",
+    "title": "KCwiki Quotes Subtitle",
     "icon": "microphone",
-    "description": "Display subtitles (supported by kcwiki)",
+    "description": "Subtitle of ship girl's quotes (supported by kcwiki)",
     "priority": 100
   }
 }
