@@ -94,7 +94,8 @@ getSubtitles = async () ->
   abbr = 'jp' if abbr is 'ja'
   url = if abbr is 'zh' then "#{REMOTE_HOST}/diff/#{subtitles['zh-CN'].version}"  else "#{REMOTE_HOST}/#{abbr}/diff/#{subtitles[locale].version}"
   try
-    [response, repData] = yield request.getAsync url
+    response = yield request.getAsync url
+    repData = if response instanceof Array then response[1] else response.body
     throw "获取字幕数据失败" unless repData
     rep = JSON.parse repData
     throw "字幕数据异常：#{rep.reason}" if rep.result is 'error'
@@ -124,7 +125,7 @@ getSubtitles = async () ->
       throw err if err
   catch e
     if e instanceof Error
-      console.error "#{e.name}: #{e.message}"
+      console.error "#{e.name}: #{e.message}\n#{e.stack}"
     else
       console.error e
     if locale isnt 'zh-TW'
