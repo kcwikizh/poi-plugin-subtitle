@@ -142,8 +142,8 @@ initialize = (e) ->
   if window.getStore?
     api_mst_shipgraph = window.getStore('const.$shipgraph')
   else
-    return if !localStorage.start2Body?
     {api_mst_shipgraph} = JSON.parse localStorage.start2Body
+  return if !api_mst_shipgraph?
   {_ships, _decks, _teitokuLv} = window
   shipgraph[ship.api_filename] = ship.api_id for ship in api_mst_shipgraph
   getSubtitles()
@@ -154,6 +154,8 @@ alert = (text, prior, stickyFor) ->
     stickyFor: stickyFor
 
 handleGameResponse = (e) ->
+  if e.detail.path.includes('start2')
+    initialize()
   clearTimeout(timeoutHandle)
 
 handleGetResponseDetails = (e) ->
