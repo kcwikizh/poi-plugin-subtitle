@@ -74,7 +74,7 @@ loadBackupSubtitles = async (locale) ->
       data = dataBackup
       subtitles[locale] = subtitlesBackup
       err = yield fs.writeFileAsync subtitlesI18nPath[locale], data
-  console.error err if err
+  console.error err if err and err.length > 0
   dataBackup
 
 getSubtitles = async () ->
@@ -122,7 +122,7 @@ getSubtitles = async () ->
         stickyFor: 3000
     for lang in langs
       err = yield fs.writeFileAsync subtitlesI18nPath[lang], JSON.stringify(subtitles[lang], null, '\t')
-      throw err if err
+      throw err if err and err.length > 0
   catch e
     if e instanceof Error
       console.error "#{e.name}: #{e.message}\n#{e.stack}"
@@ -130,7 +130,7 @@ getSubtitles = async () ->
       console.error e
     if locale isnt 'zh-TW'
       err = yield fs.writeFileAsync subtitlesI18nPath[locale], dataBackup[locale]
-      console.error err if err
+      console.error err if err and err.length > 0
       subtitles[locale] = JSON.parse dataBackup[locale]
     # window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
     #   stickyFor: 5000
