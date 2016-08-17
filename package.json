@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-subtitle",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A poi plugin which can display subtitles of kanmusu voices in alert panel",
   "main": "index.cjsx",
   "scripts": {
@@ -23,6 +23,9 @@
     "title": "KCwiki Quotes Subtitle",
     "icon": "microphone",
     "description": "Subtitle of ship girl's quotes (supported by kcwiki)",
-    "priority": 100
+    "priority": 100,
+    "apiVer": {
+        "6.99.99": "0.4.1"
+    }
   }
 }
