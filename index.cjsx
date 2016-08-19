@@ -2,7 +2,7 @@
 Promise = require 'bluebird'
 path = require 'path'
 async = Promise.coroutine
-fs = Promise.promisifyAll require('fs-extra'), { multiArgs: true }
+fs = require('fs-extra')
 request = Promise.promisifyAll require('request'), { multiArgs: true }
 {Traditionalized} = require './traditionalized'
 dbg.extra('subtitlesAudioResponse')
@@ -43,21 +43,21 @@ initSubtitlesI18n = ->
   i18n['poi-plugin-subtitle-data'].setLocale(locale)
   ___ = i18n["poi-plugin-subtitle-data"].__.bind(i18n["poi-plugin-subtitle-data"])
 
-loadSubtitles = async (_path) ->
-  [err] = yield fs.ensureFileAsync _path
-  [data] = yield fs.readFileAsync _path
+loadSubtitles = (_path) ->
+  fs.ensureFileSync _path
+  data = fs.readFileSync _path
   data = "{}" if not data or data.length is 0
   JSON.parse data
 
-loadBackupSubtitles = async (locale) ->
+loadBackupSubtitles = (locale) ->
   abbr = locale[...2]
   if abbr is 'zh'
-    [dataBackup] = yield fs.readFileAsync subtitlesBackupPath['zh-CN']
+    dataBackup = fs.readFileSync subtitlesBackupPath['zh-CN']
     subtitlesBackup = JSON.parse dataBackup
     if not subtitles['zh-CN']?.version or +subtitles['zh-CN']?.version < +subtitlesBackup?.version or not subtitles['zh-TW']?.version
       data = dataBackup
       subtitles['zh-CN'] = subtitlesBackup
-      [err] = yield fs.writeFileAsync subtitlesI18nPath['zh-CN'], data
+      fs.writeFileSync subtitlesI18nPath['zh-CN'], data
       # Convert backup subtitle to zh-TW and save
       subtitles['zh-TW'] = {}
       for shipIdOrSth, value of subtitlesBackup
@@ -66,15 +66,14 @@ loadBackupSubtitles = async (locale) ->
         else
           subtitles['zh-TW'][shipIdOrSth] = {} unless subtitles['zh-TW'][shipIdOrSth]
           subtitles['zh-TW'][shipIdOrSth][voiceId] = Traditionalized(text) for voiceId, text of value
-      [err] = yield fs.writeFileAsync subtitlesI18nPath['zh-TW'], JSON.stringify(subtitles['zh-TW'], null, '\t')
+      fs.writeFileSync subtitlesI18nPath['zh-TW'], JSON.stringify(subtitles['zh-TW'], null, '\t')
   else
-    [dataBackup] = yield fs.readFileAsync subtitlesBackupPath[locale]
+    dataBackup = fs.readFileSync subtitlesBackupPath[locale]
     subtitlesBackup = JSON.parse dataBackup
     if not subtitles[locale]?.version or +subtitles[locale]?.version < +subtitlesBackup?.version
       data = dataBackup
       subtitles[locale] = subtitlesBackup
-      [err] = yield fs.writeFileAsync subtitlesI18nPath[locale], data
-  console.error err if err
+      fs.writeFileSync subtitlesI18nPath[locale], data
   dataBackup
 
 getSubtitles = async () ->
@@ -82,9 +81,9 @@ getSubtitles = async () ->
   # Load I18n Data
   for lang in langs
     continue if lang is 'zh-TW'
-    subtitles[lang] = yield loadSubtitles(subtitlesI18nPath[lang])
+    subtitles[lang] = loadSubtitles(subtitlesI18nPath[lang])
     # Load backup subtitle
-    dataBackup[lang] = yield loadBackupSubtitles(lang)
+    dataBackup[lang] = loadBackupSubtitles(lang)
   # Update subtitle data from remote server
   if i18n["poi-plugin-subtitle"].locale not in langs
     locale = 'ja-JP'
@@ -121,16 +120,14 @@ getSubtitles = async () ->
       window.success "#{__('Update Success')}(#{version})",
         stickyFor: 3000
     for lang in langs
-      [err] = yield fs.writeFileAsync subtitlesI18nPath[lang], JSON.stringify(subtitles[lang], null, '\t')
-      throw err if err
+      fs.writeFileSync subtitlesI18nPath[lang], JSON.stringify(subtitles[lang], null, '\t')
   catch e
     if e instanceof Error
       console.error "#{e.name}: #{e.message}\n#{e.stack}"
     else
       console.error e
     if locale isnt 'zh-TW'
-      [err] = yield fs.writeFileAsync subtitlesI18nPath[locale], dataBackup[locale]
-      console.error err if err
+      fs.writeFileSync subtitlesI18nPath[locale], dataBackup[locale]
       subtitles[locale] = JSON.parse dataBackup[locale]
     # window.warn "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
     #   stickyFor: 5000
