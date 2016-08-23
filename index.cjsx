@@ -9,6 +9,7 @@ dbg.extra('subtitlesAudioResponse')
 voiceMap = {}
 shipgraph = {}
 subtitles = {}
+enemySubtitles = {}
 subtitlesI18nPath = {}
 subtitlesBackupPath = {}
 timeoutHandle = 0
@@ -17,6 +18,7 @@ langs = ['zh-CN', 'zh-TW', 'ja-JP']
 i18nSubtitleBaseDir = path.join(APPDATA_PATH, 'poi-plugin-subtitle', 'i18n')
 subtitlesI18nPath[lang] = path.join(i18nSubtitleBaseDir, "#{lang}.json") for lang in langs
 subtitlesBackupPath[lang] = path.join(__dirname, 'data', "#{lang}.json") for lang in langs
+enemySubtitlesPath = path.join(__dirname, 'data', "enemies.json")
 voiceKey = [604825,607300,613847,615318,624009,631856,635451,637218,640529,643036,652687,658008,662481,669598,675545,685034,687703,696444,702593,703894,711191,714166,720579,728970,738675,740918,743009,747240,750347,759846,764051,770064,773457,779858,786843,790526,799973,803260,808441,816028,825381,827516,832463,837868,843091,852548,858315,867580,875771,879698,882759,885564,888837,896168]
 convertFilename = (shipId, voiceId) ->
   return (shipId + 7) * 17 * (voiceKey[voiceId] - voiceKey[voiceId - 1]) % 99173 + 100000
@@ -135,6 +137,11 @@ getSubtitles = async () ->
     initSubtitlesI18n()
     return
 
+getEnemySubtitles = ->
+  data = fs.readFileSync enemySubtitlesPath
+  data = "{}" if not data or data.length is 0
+  enemySubtitles = JSON.parse data
+
 initialize = (e) ->
   if window.getStore?
     api_mst_shipgraph = window.getStore('const.$shipgraph')
@@ -144,23 +151,15 @@ initialize = (e) ->
   {_ships, _decks, _teitokuLv} = window
   shipgraph[ship.api_filename] = ship.api_id for ship in api_mst_shipgraph
   getSubtitles()
+  getEnemySubtitles()
 
 alert = (text, prior, stickyFor) ->
   window.log "#{text}",
     priority : prior,
     stickyFor: stickyFor
 
-handleGameResponse = (e) ->
-  if e.detail.path.includes('start2')
-    initialize()
-  clearTimeout(timeoutHandle)
-
-handleGetResponseDetails = (e) ->
+handleShipVoice = (shipCode, fileName) ->
   prior = 5
-  match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
-  return if not match? or match.length < 3
-  console.log e.newURL if dbg.extra('subtitlesAudioResponse').isEnabled()
-  [..., shipCode, fileName] = match
   apiId = shipgraph[shipCode]
   return if not apiId
   voiceId = voiceMap[apiId][fileName]
@@ -192,6 +191,39 @@ handleGetResponseDetails = (e) ->
       else
         alert __('Subtitle Miss',shipName), prior, 5000
     ,diff)
+
+handleEnemyVoice = (fileName) ->
+  prior = 5
+  voiceId = fileName
+  if not enemySubtitles[voiceId]
+    console.log "Enemy subtitle missed: #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
+    return
+  enemy = enemySubtitles[voiceId]
+  name = enemy.name
+  quote = enemy.jp
+  if i18n["poi-plugin-subtitle"].locale is 'zh-CN'
+    quote = enemy.zh
+  else if i18n["poi-plugin-subtitle"].locale is 'zh-TW'
+    quote = Traditionalized(enemy.zh)
+  if not quote
+    console.log "Enemy subtitle missed: #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
+    return
+  alert "#{name}：#{quote}", prior, 5000
+
+handleGetResponseDetails = (e) ->
+  match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
+  if match?.length is 3
+    console.log e.newURL if dbg.extra('subtitlesAudioResponse').isEnabled()
+    [..., shipCode, fileName] = match
+    if shipCode is '9998'
+      handleEnemyVoice(fileName)
+    else
+      handleShipVoice(shipCode, fileName)
+
+handleGameResponse = (e) ->
+  if e.detail.path.includes('start2')
+    initialize()
+  clearTimeout(timeoutHandle)
 
 module.exports =
   show: false
