@@ -10,6 +10,8 @@ voiceMap = {}
 shipgraph = {}
 subtitles = {}
 enemySubtitles = {}
+npcSubtitles = {}
+titleCallSubtitles = {}
 subtitlesI18nPath = {}
 subtitlesBackupPath = {}
 timeoutHandle = 0
@@ -19,6 +21,8 @@ i18nSubtitleBaseDir = path.join(APPDATA_PATH, 'poi-plugin-subtitle', 'i18n')
 subtitlesI18nPath[lang] = path.join(i18nSubtitleBaseDir, "#{lang}.json") for lang in langs
 subtitlesBackupPath[lang] = path.join(__dirname, 'data', "#{lang}.json") for lang in langs
 enemySubtitlesPath = path.join(__dirname, 'data', "enemies.json")
+npcSubtitlesPath = path.join(__dirname, 'data', 'npc.json')
+titlecCallSubtitlesPath = path.join(__dirname, 'data', 'titlecall.json')
 voiceKey = [604825,607300,613847,615318,624009,631856,635451,637218,640529,643036,652687,658008,662481,669598,675545,685034,687703,696444,702593,703894,711191,714166,720579,728970,738675,740918,743009,747240,750347,759846,764051,770064,773457,779858,786843,790526,799973,803260,808441,816028,825381,827516,832463,837868,843091,852548,858315,867580,875771,879698,882759,885564,888837,896168]
 convertFilename = (shipId, voiceId) ->
   return (shipId + 7) * 17 * (voiceKey[voiceId] - voiceKey[voiceId - 1]) % 99173 + 100000
@@ -142,6 +146,16 @@ getEnemySubtitles = ->
   data = "{}" if not data or data.length is 0
   enemySubtitles = JSON.parse data
 
+getNpcSubtitles = ->
+  data = fs.readFileSync npcSubtitlesPath
+  data = "{}" if not data or data.length is 0
+  npcSubtitles = JSON.parse data
+
+getTitleCallSubtitles = ->
+  data = fs.readFileSync titlecCallSubtitlesPath
+  data = "{}" if not data or data.length is 0
+  titleCallSubtitles = JSON.parse data
+
 initialize = (e) ->
   if window.getStore?
     api_mst_shipgraph = window.getStore('const.$shipgraph')
@@ -152,6 +166,8 @@ initialize = (e) ->
   shipgraph[ship.api_filename] = ship.api_id for ship in api_mst_shipgraph
   getSubtitles()
   getEnemySubtitles()
+  getNpcSubtitles()
+  getTitleCallSubtitles()
 
 alert = (text, prior, stickyFor) ->
   window.log "#{text}",
@@ -160,7 +176,7 @@ alert = (text, prior, stickyFor) ->
 
 handleShipVoice = (shipCode, fileName) ->
   prior = 5
-  apiId = shipgraph[shipCode]
+  apiId = shipgraph[shipCode[2..]]
   return if not apiId
   voiceId = voiceMap[apiId][fileName]
   return if not voiceId
@@ -192,6 +208,24 @@ handleShipVoice = (shipCode, fileName) ->
         alert __('Subtitle Miss',shipName), prior, 5000
     ,diff)
 
+handleNpcVoice = (fileName) ->
+  prior = 5
+  voiceId = fileName
+  if not npcSubtitles[voiceId]
+    console.log "Npc subtitle missed: #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
+    return
+  npc = npcSubtitles[voiceId]
+  name = npc.name
+  quote = npc.jp
+  if i18n["poi-plugin-subtitle"].locale is 'zh-CN'
+    quote = npc.zh
+  else if i18n["poi-plugin-subtitle"].locale is 'zh-TW'
+    quote = Traditionalized(npc.zh)
+  if not quote
+    console.log "Npc subtitle missed: #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
+    return
+  alert "#{name}：#{quote}", prior, 5000
+
 handleEnemyVoice = (fileName) ->
   prior = 5
   voiceId = fileName
@@ -210,13 +244,38 @@ handleEnemyVoice = (fileName) ->
     return
   alert "#{name}：#{quote}", prior, 5000
 
+handleTitleCallVoice = (fileName) ->
+  prior = 5
+  voiceId = fileName.replace('/','')
+  if not titleCallSubtitles[voiceId]
+    console.log "Titlecall subtitle missed: #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
+    return
+  titlecall = titleCallSubtitles[voiceId]
+  name = titlecall.name
+  quote = titlecall.jp
+  if i18n["poi-plugin-subtitle"].locale is 'zh-CN'
+    quote = titlecall.zh
+  else if i18n["poi-plugin-subtitle"].locale is 'zh-TW'
+    quote = Traditionalized(titlecall.zh)
+  if not quote
+    console.log "Titlecall subtitle missed: #{voiceId}" if dbg.extra('subtitlesAudioResponse').isEnabled()
+    return
+  if name
+    alert "#{name}：#{quote}", prior, 5000
+  else
+    alert "#{quote}", prior, 5000
+
 handleGetResponseDetails = (e) ->
-  match = /kcs\/sound\/kc(.*?)\/(.*?).mp3/.exec(e.newURL)
+  match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(e.newURL)
   if match?.length is 3
     console.log e.newURL if dbg.extra('subtitlesAudioResponse').isEnabled()
     [..., shipCode, fileName] = match
-    if shipCode is '9998'
+    if shipCode is 'kc9998'
       handleEnemyVoice(fileName)
+    else if shipCode is 'kc9999'
+      handleNpcVoice(fileName)
+    else if shipCode is 'titlecall'
+      handleTitleCallVoice(fileName)
     else
       handleShipVoice(shipCode, fileName)
 
