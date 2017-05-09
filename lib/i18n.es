@@ -17,7 +17,7 @@ export class I18nService {
             extension: '.json'
         });
         i18n[`${PLUGIN_NAME}-data`].setLocale(this._locale);
-        return [this.getPluginI18n(), this.getDataI18n()];
+        return [I18nService.getPluginI18n(), I18nService.getDataI18n()];
     };
 
     static getLocale() {
@@ -29,11 +29,11 @@ export class I18nService {
         return locale;
     }
 
-    getPluginI18n = () => {
+    static getPluginI18n()  {
         return i18n[PLUGIN_NAME].__.bind(i18n[PLUGIN_NAME]);
-    };
+    }
 
-    getDataI18n = () => {
+    static getDataI18n() {
         return i18n[PLUGIN_NAME + '-data'].__.bind(i18n[PLUGIN_NAME + '-data']);
-    };
+    }
 }

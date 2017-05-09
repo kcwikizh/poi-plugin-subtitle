@@ -26,13 +26,12 @@ export class Notifier {
         this._voiceMap = this._loader.getVoiceMap();
         if (_.isEmpty(this._shipGraph)) return;
         this._loader.getSubtitles().then((data) => {
-            console.log('Ship quote data: ', data);
             this._subtitles.ships = data;
+            [this.__, this.___] = this._i18nService.initialize();
         });
         for (let category of EXTRA_CATEGORIES) {
             this._subtitles[category] = this._loader.getExtraSubtitles(category);
         }
-        [this.__, this.___] = this._i18nService.initialize();
     };
 
     handleResponseDetails = (event) => {

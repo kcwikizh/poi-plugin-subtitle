@@ -48,7 +48,7 @@ export class Loader {
     _readSubtitleDataFile = (lang) => {
         let path = this._i18nDataPath[lang];
         fs.ensureFileSync(path);
-        let data = fs.readJsonSync(path);
+        let data = fs.readJsonSync(path, { throws: false });
         if (!data || data.length === 0)
             data = {};
         return data;
@@ -56,7 +56,7 @@ export class Loader {
 
     _readSubtitleSourceFile = (lang) => {
         let path = this._i18nSourcePath[lang];
-        let data = fs.readJsonSync(path);
+        let data = fs.readJsonSync(path, { throws: false});
         if (!data || data.length === 0)
             throwPluginError(`Source data not found: ${path}`);
         return data;
@@ -81,19 +81,23 @@ export class Loader {
         abbr = (abbr === 'ja') ? 'jp' : abbr;                                                    // To Comment
         let url = (abbr === 'zh') ? `${REMOTE_HOST}/diff/` : `${REMOTE_HOST}/${abbr}/diff/`;
         url += data[locale].version;
-        let backup = _.cloneDeep(data);
+        const backup = _.cloneDeep(data);
+        const __ = I18nService.getPluginI18n();
         try {
-            let response = await request.getAsync(url);
+            const response = await request.getAsync(url);
             if (response.statusCode >= 300)
                 throwPluginError(`Network exception(${response.statusCode}): ${response.statusMessage}`);
-            let updates = JSON.parse(response.body);
-            if (_.isEmpty(updates) || !_.has(updates, 'version')) {
+            const updates = JSON.parse(response.body);
+            if (_.has(updates, 'version')) {
+                const version = updates.version;
+                this._assignSubtitle(data[locale], updates, (x) => x);
+                this._needUpdate = true;
+                window.success(`${__('Update Success')}(${version})`, {stickyFor: 3000});
+            } else if (!_.isEmpty(updates)) {
                 debug(response.body);
                 let resBody = '' + response.body;
                 throwPluginError(`Invalid subtitle updates: ${resBody.slice(0, 100)}`);
             }
-            this._assignSubtitle(data, updates, (x)=>x);
-            this._needUpdate = true;
         } catch (e) {
             console.error(e.message);
             console.error(e.stack);
@@ -110,7 +114,7 @@ export class Loader {
                 let shipId = key;
                 if(!_.has(data, shipId)) data[shipId] = {};
                 for (let [voiceId, quote] of _.entries(value)) {
-                    data[shipId][voiceId] = process(value);
+                    data[shipId][voiceId] = process(quote);
                 }
             }
         }
