@@ -9,4 +9,9 @@ gulp.task('watch', function() {
 			.pipe(watch('**/*.cjsx'))
 			.pipe(gulp.dest(destDir))
 	});
+	watch('**/*.es', function() {
+		gulp.src('**/*.es')
+			.pipe(watch('**/*.es'))
+			.pipe(gulp.dest(destDir))
+	});
 });
