@@ -2,13 +2,13 @@ import {PLUGIN_NAME, LANGS, I18N_DATA_BASEDIR} from './constant';
 
 export class I18nService {
 
-    private locale = '';
+    _locale = '';
 
     constructor() {
-        this.locale = I18nService.getLocale();
+        this._locale = I18nService.getLocale();
     }
 
-    public initialize() {
+    initialize = () => {
         i18n[`${PLUGIN_NAME}-data`] = new(require('i18n-2'))({
             locales: LANGS,
             defaultLocale: 'ja-JP',
@@ -16,11 +16,11 @@ export class I18nService {
             devMode: false,
             extension: '.json'
         });
-        i18n[`${PLUGIN_NAME}-data`].setLocale(locale);
+        i18n[`${PLUGIN_NAME}-data`].setLocale(this._locale);
         return [this.getPluginI18n(), this.getDataI18n()];
-    }
+    };
 
-    public static getLocale() {
+    static getLocale() {
         let locale = i18n[PLUGIN_NAME].locale;
         if (!LANGS.includes(locale)) {
             i18n[PLUGIN_NAME].setLocale('ja-JP');
@@ -29,11 +29,11 @@ export class I18nService {
         return locale;
     }
 
-    public getPluginI18n() {
+    getPluginI18n = () => {
         return i18n[PLUGIN_NAME].__.bind(i18n[PLUGIN_NAME]);
-    }
+    };
 
-    public getDataI18n() {
+    getDataI18n = () => {
         return i18n[PLUGIN_NAME + '-data'].__.bind(i18n[PLUGIN_NAME + '-data']);
-    }
+    };
 }

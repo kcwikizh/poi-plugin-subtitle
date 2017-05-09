@@ -1,8 +1,12 @@
 import {Notifier} from './lib/notifier';
+import {DBG_EXTRA_HANDLER_NAME} from './lib/constant';
+
+let notifier = {};
 
 export const
     pluginDidLoad = (e) => {
-        notifier = Notifier();
+        dbg.extra(DBG_EXTRA_HANDLER_NAME);
+        notifier = new Notifier();
         notifier.initialize();
         $('kan-game webview').addEventListener('did-get-response-details', notifier.handleResponseDetails);
         window.addEventListener('game.response', notifier.handleGameResponse);

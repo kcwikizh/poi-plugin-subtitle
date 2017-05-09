@@ -1,82 +1,101 @@
 import {Loader} from './loader';
 import _ from 'lodash';
 import {EXTRA_CATEGORIES} from './constant';
-import {debug} from './util';
+import {debug, timeToNextHour} from './util';
 import {I18nService} from './i18n';
 import {Traditionalized} from './traditionalized';
+const {getStore} = window;
 
 export class Notifier {
 
-    private shipGraph = {};
-    private subtitles = {};
-    private voiceMap = {};
-    private timeoutHandle = -1;
-    private loader = new Loader();
-    private i18nService = new I18nService();
-    private __ = (x) => x;
-    private ___ = (x) => x;
+    _shipGraph = {};
+    _subtitles = {};
+    _voiceMap = {};
+    _timeoutHandle = -1;
+    _loader = new Loader();
+    _i18nService = new I18nService();
+    __ = (x) => x;
+    ___ = (x) => x;
 
-    public constructor() {
+    constructor() {
     }
 
-    public initialize() {
-        this.shipGraph = this.loader.getShipGraph();                       // Load ship graph data
-        this.voiceMap = this.loader.getVoiceMap();
-        if (_.isEmpty(this.shipGraph)) return;
-        this.subtitles['ships'] = this.loader.getSubtitles();
+    initialize = () => {
+        this._ships = getStore('const.$ships');
+        this._shipGraph = this._loader.getShipGraph();                       // Load ship graph data
+        this._voiceMap = this._loader.getVoiceMap();
+        if (_.isEmpty(this._shipGraph)) return;
+        this._loader.getSubtitles().then((data) => {
+            console.log('Ship quote data: ', data);
+            this._subtitles.ships = data;
+        });
         for (let category of EXTRA_CATEGORIES) {
-            this.subtitles[category] = this.loader.getExtraSubtitles(category);
+            this._subtitles[category] = this._loader.getExtraSubtitles(category);
         }
-        [this.__, this.___] = this.i18nService.initialize();
-    }
+        [this.__, this.___] = this._i18nService.initialize();
+    };
 
-    public handleResponseDetails(event) {
-        let match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.newURL);
+    handleResponseDetails = (event) => {
+        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.newURL);
         if (match && match.length == 3) {
             debug(event.newURL);
-            let [...shipCode, filename] = match;
+            const [,shipCode, filename] = match;
             switch (shipCode) {
                 case 'kc9998':
-                    this.handleExtraVoice('enemies', filename);
+                    this._handleExtraVoice('enemies', filename);
                     break;
                 case 'kc9999':
-                    this.handleExtraVoice('npc', filename);
+                    this._handleExtraVoice('npc', filename);
                     break;
                 case 'titlecall':
-                    this.handleExtraVoice('titlecall', filename.replace('/', ''));
+                    this._handleExtraVoice('titlecall', filename.replace('/', ''));
                     break;
                 default:
-                    this.handleShipVoice(shipCode, filename);
+                    this._handleShipVoice(shipCode, filename);
             }
         }
-    }
+    };
 
-    public handleGameResponse(event) {
-        if (event.detail.path.includes('start2'))
-            this.initialize();
-        clearTimeout(this.timeoutHandle);
-    }
+    handleGameResponse = (event) => {
+        clearTimeout(this._timeoutHandle);
+    };
 
-    private handleShipVoice(shipCode, filename) {
-        const apiId = this.shipGraph[shipCode.slice(2)];
+    _handleShipVoice = (shipCode, filename) => {
+        const apiId = this._shipGraph[shipCode.slice(2)];
         if (!apiId) return;
-        const voiceId = this.voiceMap[apiId][filename];
+        const voiceId = this._voiceMap[apiId][filename];
         if (!voiceId) return;
         debug(`apiId: ${apiId}, voiceId: ${voiceId}`);
-        let subtitles = this.subtitles['ships'];
-        const quote = subtitles[apiId][voiceId];
+        let subtitles = this._subtitles['ships'];
+        const quote = subtitles['zh-CN'][apiId][voiceId];
         const {__, ___} = this;
         debug(`i18n: ${___(apiId+'.'+voiceId)}`);
         let priority = 5;
         if (voiceId > 8 && voiceId < 11)
             priority = 0;
-        // shipName =
-    }
+        const shipName = this._ships[apiId].api_name;
+        if (voiceId < 30) {
+            if (!quote) {
+                this._display(__('Subtitle Miss', shipName), priority);
+                return;
+            }
+            this._display(`${shipName}: ${___(apiId + '.' + voiceId)}`, priority);
+        } else {
+            const scheduledTime = timeToNextHour();
+            this._timeoutHandle = setTimeout(() => {
+                if (!quote) {
+                    this._display(__('Subtitle Miss', shipName), priority);
+                    return;
+                }
+                this._display(`${shipName}: ${___(apiId + '.' + voiceId)}`, priority);
+            }, scheduledTime);
+        }
+    };
 
-    private handleExtraVoice(category, voiceId) {
-        const subtitles = this.subtitles[category];
+    _handleExtraVoice = (category, voiceId) => {
+        const subtitles = this._subtitles[category];
         const title = _.capitalize(category);
-        const locale = this.i18nService.locale;
+        const locale = this._i18nService._locale;
         if (!subtitles[voiceId]) {
             debug(`${title} subtitle missed: #${voiceId}`);
             return;
@@ -93,13 +112,13 @@ export class Notifier {
             return;
         }
         if (name)
-            this.display(`${name}: ${quote}`);
+            this._display(`${name}: ${quote}`);
         else
-            this.display(`${quote}`);
-    }
+            this._display(`${quote}`);
+    };
 
-    private display(text, priority=5, stickyFor=5000) {
+    _display = (text, priority=5, stickyFor=5000) => {
         window.log(text, {priority, stickyFor});
-    }
+    };
 }
 
