@@ -84,10 +84,19 @@ export class Loader {
         const backup = _.cloneDeep(data);
         const __ = I18nService.getPluginI18n();
         try {
-            const response = await request.getAsync(url);
-            if (response.statusCode >= 300)
-                throwPluginError(`Network exception(${response.statusCode}): ${response.statusMessage}`);
-            const updates = JSON.parse(response.body);
+            const responses = await request.getAsync(url);
+            let responseBody = {};
+            if (_.isArray(responses)) {
+                responseBody = responses[1];
+            } else {
+                const response = responses;
+                if (response.statusCode >= 300)
+                    throwPluginError(`Network exception(${response.statusCode}): ${response.statusMessage}`);
+                responseBody = response.body;
+            }
+            if (!responseBody)
+                throwPluginError(`Fetch updates failed(${url}), responses: ${JSON.stringify(responses).slice(0, 300)}`);
+            const updates = JSON.parse(responseBody);
             if (_.has(updates, 'version')) {
                 const version = updates.version;
                 this._assignSubtitle(data[locale], updates, (x) => x);
