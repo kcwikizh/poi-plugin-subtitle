@@ -1,4 +1,4 @@
-import {PLUGIN_NAME, LANGS, I18N_DATA_BASEDIR} from './constant';
+import {PLUGIN_NAME, LANGS, I18N_DATA_BASEDIR, LOCALE_CONFIG_KEY} from './constant';
 
 export class I18nService {
 
@@ -21,7 +21,10 @@ export class I18nService {
     };
 
     static getLocale() {
-        let locale = i18n[PLUGIN_NAME].locale;
+        let locale = window.config.get(LOCALE_CONFIG_KEY);
+        if (locale)
+            return locale;
+        locale = i18n[PLUGIN_NAME].locale;
         if (!LANGS.includes(locale)) {
             i18n[PLUGIN_NAME].setLocale('ja-JP');
             locale = 'ja-JP';
@@ -35,5 +38,12 @@ export class I18nService {
 
     static getDataI18n() {
         return i18n[PLUGIN_NAME + '-data'].__.bind(i18n[PLUGIN_NAME + '-data']);
+    }
+
+    static setLocale(locale) {
+        i18n[PLUGIN_NAME].setLocale(locale);
+        i18n[`${PLUGIN_NAME}-data`].setLocale(locale);
+        window.config.set(LOCALE_CONFIG_KEY, locale);
+        this._locale = locale;
     }
 }

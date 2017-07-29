@@ -14,5 +14,6 @@ export const
     pluginWillUnload = (e) => {
         $('kan-game webview').removeEventListener('did-get-response-details', notifier.handleResponseDetails);
         window.removeEventListener('game.response', notifier.handleGameResponse);
-    },
-    show = false;
+    };
+
+export {settingsClass} from './lib/settings';
