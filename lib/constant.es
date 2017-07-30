@@ -10,4 +10,4 @@ export const PACKAGE_INFO = require(path.join(BASE_DIR, 'package.json'));
 export const PLUGIN_NAME = PACKAGE_INFO.name;
 export const I18N_DATA_BASEDIR = path.join(APPDATA_PATH, PLUGIN_NAME, 'i18n');
 export const DBG_EXTRA_HANDLER_NAME = 'subtitlesAudioResponse';
-export const LOCALE_CONFIG_KEY = 'plugin.subtitle.locale'
+export const LOCALE_CONFIG_KEY = 'plugin.subtitle.locale';

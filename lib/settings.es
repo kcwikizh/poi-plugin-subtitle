@@ -21,7 +21,7 @@ class Divider extends React.Component{
 
 const LocaleSelectConfig = connect(() => {
     return (state) => ({
-        value: get(state.config, LOCALE_CONFIG_KEY, I18nService.getLocale())
+        value: get(state.config, LOCALE_CONFIG_KEY)
     });
 })(class localeSelectConfig extends React.Component {
     handleSetLanguage = (e) => {
@@ -29,7 +29,7 @@ const LocaleSelectConfig = connect(() => {
         I18nService.setLocale(language);
     };
     render() {
-        const value = this.props.value || 'ja-JP';
+        const value = this.props.value || I18nService.getLocale();
         return (
             <FormControl componentClass="select" value={value} onChange={this.handleSetLanguage}>
                 <option value="zh-CN">简体中文</option>

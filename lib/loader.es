@@ -31,7 +31,6 @@ export class Loader {
         this._needUpdate = false;
         for (let lang of LANGS) {
             data[lang] = this._readSubtitleDataFile(lang);
-            if (lang === 'zh-TW') continue;
             source[lang] = this._readSubtitleSourceFile(lang);
             if (!this._isSubtitleDataNew(data[lang], source[lang])) {
                 data[lang] = _.cloneDeep(source[lang]);
@@ -39,7 +38,6 @@ export class Loader {
             }
         }
         data = await this._fetchSubtitleUpdates(data);
-        this._traditionalize(data);
         if (this._needUpdate)
             this._saveSubtitleData(data);
         return data;
@@ -69,17 +67,20 @@ export class Loader {
         return +data.version >= +source.version;
     };
 
-    _traditionalize = (data) => {
-        if (_.has(data['zh-TW'], 'version') && this._isSubtitleDataNew(data['zh-TW'], data['zh-CN'])) return;
-        this._assignSubtitle(data['zh-TW'], data['zh-CN'], Traditionalized);
-    };
-
     _fetchSubtitleUpdates = async (data) => {
         let locale = I18nService.getLocale();
-        locale = (locale === 'zh-TW') ? 'zh-CN' : locale;                                        // To Comment
-        let abbr = locale.slice(0, 2);
-        abbr = (abbr === 'ja') ? 'jp' : abbr;                                                    // To Comment
-        let url = (abbr === 'zh') ? `${REMOTE_HOST}/diff/` : `${REMOTE_HOST}/${abbr}/diff/`;
+        let url;
+        switch (locale) {
+            case 'zh-CN':
+                url = `${REMOTE_HOST}/diff/`;
+                break;
+            case 'zh-TW':
+                url = `${REMOTE_HOST}/zh-tw/diff/`;
+                break;
+            default:
+                url = `${REMOTE_HOST}/jp/diff/`;
+                break;
+        }
         url += data[locale].version;
         const backup = _.cloneDeep(data);
         const __ = I18nService.getPluginI18n();
