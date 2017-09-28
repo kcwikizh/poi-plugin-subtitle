@@ -25,7 +25,11 @@
     "description": "Subtitle of ship girl's quotes (supported by kcwiki)",
     "priority": 100,
     "apiVer": {
-        "6.99.99": "0.4.1"
+      "6.99.99": "0.4.1"
     }
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-watch": "^4.3.11"
   }
 }
