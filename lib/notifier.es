@@ -104,6 +104,8 @@ export class Notifier {
         let quote = entity.jp;
         if (locale == 'zh-CN')
             quote = entity.zh;
+        else if (locale == 'en-US' && entity.en)
+            quote = entity.en;
         else if (locale == 'zh-TW')
             quote = Traditionalized(entity.zh);
         if (!quote) {

@@ -77,6 +77,9 @@ export class Loader {
             case 'zh-TW':
                 url = `${REMOTE_HOST}/zh-tw/diff/`;
                 break;
+            case 'en-US':
+                url = `${REMOTE_HOST}/en/diff`;
+                break;
             default:
                 url = `${REMOTE_HOST}/jp/diff/`;
                 break;
