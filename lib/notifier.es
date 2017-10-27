@@ -32,7 +32,7 @@ export class Notifier {
         for (let category of EXTRA_CATEGORIES) {
             this._subtitles[category] = this._loader.getExtraSubtitles(category);
         }
-    };
+    }
 
     handleResponseDetails = (event) => {
         const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.newURL);
@@ -53,11 +53,11 @@ export class Notifier {
                     this._handleShipVoice(shipCode, filename);
             }
         }
-    };
+    }
 
     handleGameResponse = (event) => {
         clearTimeout(this._timeoutHandle);
-    };
+    }
 
     _handleShipVoice = (shipCode, filename) => {
         const apiId = this._shipGraph[shipCode.slice(2)];
@@ -89,25 +89,22 @@ export class Notifier {
                 this._display(`${shipName}: ${___(apiId + '.' + voiceId)}`, priority);
             }, scheduledTime);
         }
-    };
+    }
 
     _handleExtraVoice = (category, voiceId) => {
         const subtitles = this._subtitles[category];
         const title = _.capitalize(category);
-        const locale = this._i18nService._locale;
         if (!subtitles[voiceId]) {
             debug(`${title} subtitle missed: #${voiceId}`);
             return;
         }
         const entity = subtitles[voiceId];
+        if (_.isArray(entity)) {
+            this._handleShortDrama(entity);
+            return;
+        }
         const name = entity.name;
-        let quote = entity.jp;
-        if (locale == 'zh-CN')
-            quote = entity.zh;
-        else if (locale == 'en-US' && entity.en)
-            quote = entity.en;
-        else if (locale == 'zh-TW')
-            quote = Traditionalized(entity.zh);
+        const quote = this._getQuoteByLocale(entity);
         if (!quote) {
             debug(`${title} subtitle missed: #${voiceId}`);
             return;
@@ -116,10 +113,32 @@ export class Notifier {
             this._display(`${name}: ${quote}`);
         else
             this._display(`${quote}`);
-    };
+    }
+
+    _handleShortDrama(entities) {
+        for (const entity of entities) {
+            const {name, time} = entity;
+            const quote = this._getQuoteByLocale(entity);
+            setTimeout(() => {
+                this._display(`${name}: ${quote}`);
+            }, time);
+        }
+    }
+
+    _getQuoteByLocale(entity) {
+        const locale = this._i18nService._locale;
+        let quote = entity.jp;
+        if (locale === 'zh-CN')
+            quote = entity.zh;
+        else if (locale === 'en-US' && entity.en)
+            quote = entity.en;
+        else if (locale === 'zh-TW')
+            quote = Traditionalized(entity.zh);
+        return quote;
+    }
 
     _display = (text, priority=5, stickyFor=5000) => {
         window.log(text, {priority, stickyFor});
-    };
+    }
 }
 
