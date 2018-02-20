@@ -36,6 +36,7 @@ export class Loader {
                 data[lang] = _.cloneDeep(source[lang]);
                 this._needUpdate = true;
             }
+
         }
         data = await this._fetchSubtitleUpdates(data);
         if (this._needUpdate)
@@ -64,6 +65,7 @@ export class Loader {
         if (_.isEmpty(data)) return false;
         if (!_.has(data, 'version')) throwPluginError(`Data version not found, try remove the plugin directory in ${APPDATA_PATH}`);
         if (!_.has(source, 'version')) throwPluginError(`Source version not found, please contact to us (https://github.com/kcwikizh/poi-plugin-subtitle/issues)`);
+        debug(`Local data version is ${data['version']}, remote data version is ${source['version']}`);
         return +data.version >= +source.version;
     };
 
@@ -171,6 +173,8 @@ export class Loader {
             for(let vno=1; vno <= VOICE_KEYS.length; vno++) {
                 voiceMap[no][encodeSoundFilename(no, vno)] = vno;
             }
+            // HACK: 联合舰队的语音文件名并未加密
+            voiceMap[no]['141'] = 141;
         }
         return voiceMap;
     };

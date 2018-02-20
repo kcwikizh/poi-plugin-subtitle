@@ -36,7 +36,7 @@ export class Notifier {
 
     handleResponseDetails = (event) => {
         const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.newURL);
-        if (match && match.length == 3) {
+        if (match && match.length === 3) {
             debug(event.newURL);
             const [,shipCode, filename] = match;
             switch (shipCode) {
@@ -73,7 +73,7 @@ export class Notifier {
         if (voiceId > 8 && voiceId < 11)
             priority = 0;
         const shipName = this._ships[apiId].api_name;
-        if (voiceId < 30) {
+        if (voiceId < 30 || voiceId === 141) {
             if (!quote) {
                 this._display(__('Subtitle Miss', shipName), priority);
                 return;
