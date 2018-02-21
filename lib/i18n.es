@@ -1,13 +1,13 @@
 import {PLUGIN_NAME, LANGS, I18N_DATA_BASEDIR, LOCALE_CONFIG_KEY} from './constant';
 import {readJsonSync} from 'fs-extra'
 import _ from 'lodash'
+import path from 'path-extra'
 
 const readI18nResources = (filePath) => {
     try {
         let data = readJsonSync(filePath)
         data = _(data)
             .entries()
-            .map(([key, v]) => [escapeI18nKey(key), v])
             .fromPairs()
             .value()
         return data
@@ -29,31 +29,30 @@ export class I18nService {
     initialize = () => {
         try {
             i18next = require('i18next').createInstance()
-            i18next.use(reactI18nextModule)
             .init({
                 fallbackLng: false,
                 resources: _(LANGS).map(locale => ([
                     locale,
                     {
-                        translator: readOrIgnoreJsonSync(path.join(I18N_DATA_BASEDIR, `${locale}.json`)),
+                        translation: readI18nResources(path.join(I18N_DATA_BASEDIR, `${locale}.json`)),
                     },
                 ]))
                 .fromPairs()
                 .value(),
                 returnObjects: true,
             })
-            i18next.__ = i18next.getFixedT(this._locale)
+            i18next.__ = i18next.getFixedT(this._locale);
         } catch (e) {
             i18next = new(require('i18n-2'))({
                 locales: LANGS,
                 defaultLocale: 'ja-JP',
                 directory: I18N_DATA_BASEDIR,
                 devMode: false,
-                extension: '.json'
+                extension: '.json',
             });
             i18next.setLocale(this._locale);
-            return [I18nService.getPluginI18n(), I18nService.getDataI18n()];
         }
+        return [I18nService.getPluginI18n(), I18nService.getDataI18n()];
     };
 
     static getLocale() {
@@ -78,7 +77,7 @@ export class I18nService {
 
     static setLocale(locale) {
         if (i18next.getFixedT) {
-            i18next.__ = i18next.getFixedT(locale)
+            i18next.__ = i18next.getFixedT(this._locale);
         } else {
             i18n[PLUGIN_NAME].setLocale(locale);
             i18next.setLocale(locale);
