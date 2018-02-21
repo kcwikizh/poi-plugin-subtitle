@@ -1,4 +1,22 @@
 import {PLUGIN_NAME, LANGS, I18N_DATA_BASEDIR, LOCALE_CONFIG_KEY} from './constant';
+import {readJsonSync} from 'fs-extra'
+import _ from 'lodash'
+import path from 'path-extra'
+
+const readI18nResources = (filePath) => {
+    try {
+        let data = readJsonSync(filePath)
+        data = _(data)
+            .entries()
+            .fromPairs()
+            .value()
+        return data
+    } catch (e) {
+        return {}
+    }
+}
+
+let i18next
 
 export class I18nService {
 
@@ -9,14 +27,31 @@ export class I18nService {
     }
 
     initialize = () => {
-        i18n[`${PLUGIN_NAME}-data`] = new(require('i18n-2'))({
-            locales: LANGS,
-            defaultLocale: 'ja-JP',
-            directory: I18N_DATA_BASEDIR,
-            devMode: false,
-            extension: '.json'
-        });
-        i18n[`${PLUGIN_NAME}-data`].setLocale(this._locale);
+        try {
+            i18next = require('i18next').createInstance()
+            .init({
+                fallbackLng: false,
+                resources: _(LANGS).map(locale => ([
+                    locale,
+                    {
+                        translation: readI18nResources(path.join(I18N_DATA_BASEDIR, `${locale}.json`)),
+                    },
+                ]))
+                .fromPairs()
+                .value(),
+                returnObjects: true,
+            })
+            i18next.__ = i18next.getFixedT(this._locale);
+        } catch (e) {
+            i18next = new(require('i18n-2'))({
+                locales: LANGS,
+                defaultLocale: 'ja-JP',
+                directory: I18N_DATA_BASEDIR,
+                devMode: false,
+                extension: '.json',
+            });
+            i18next.setLocale(this._locale);
+        }
         return [I18nService.getPluginI18n(), I18nService.getDataI18n()];
     };
 
@@ -33,16 +68,20 @@ export class I18nService {
     }
 
     static getPluginI18n()  {
-        return i18n[PLUGIN_NAME].__.bind(i18n[PLUGIN_NAME]);
+        return (...arg) => i18n[PLUGIN_NAME].__(...arg);
     }
 
     static getDataI18n() {
-        return i18n[PLUGIN_NAME + '-data'].__.bind(i18n[PLUGIN_NAME + '-data']);
+        return (...arg) => i18next.__(...arg);
     }
 
     static setLocale(locale) {
-        i18n[PLUGIN_NAME].setLocale(locale);
-        i18n[`${PLUGIN_NAME}-data`].setLocale(locale);
+        if (i18next.getFixedT) {
+            i18next.__ = i18next.getFixedT(this._locale);
+        } else {
+            i18n[PLUGIN_NAME].setLocale(locale);
+            i18next.setLocale(locale);
+        }
         window.config.set(LOCALE_CONFIG_KEY, locale);
         this._locale = locale;
     }
