@@ -9,10 +9,10 @@ const readI18nResources = (filePath) => {
         data = _(data)
             .entries()
             .fromPairs()
-            .value()
-        return data
+            .value();
+        return data;
     } catch (e) {
-        return {}
+        return {};
     }
 }
 
@@ -40,7 +40,7 @@ export class I18nService {
                 .fromPairs()
                 .value(),
                 returnObjects: true,
-            })
+            });
             i18next.__ = i18next.getFixedT(this._locale);
         } catch (e) {
             i18next = new(require('i18n-2'))({
@@ -77,7 +77,7 @@ export class I18nService {
 
     static setLocale(locale) {
         if (i18next.getFixedT) {
-            i18next.__ = i18next.getFixedT(this._locale);
+            i18next.__ = i18next.getFixedT(locale);
         } else {
             i18n[PLUGIN_NAME].setLocale(locale);
             i18next.setLocale(locale);

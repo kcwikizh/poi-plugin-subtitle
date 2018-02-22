@@ -48,7 +48,7 @@ export const settingsClass = () =>
             <Col xs={6}>
                 <Divider text={window.i18n.setting.__('Language')}/>
             </Col>
-            <Col xs={6}>
+            <Col xs={6} style={{marginBottom: '25px'}}>
                 <LocaleSelectConfig/>
             </Col>
         </Row>
