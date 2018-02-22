@@ -43,6 +43,7 @@ export class I18nService {
             });
             i18next.__ = i18next.getFixedT(this._locale);
         } catch (e) {
+            // Polyfill: POI < 8.2
             i18next = new(require('i18n-2'))({
                 locales: LANGS,
                 defaultLocale: 'ja-JP',
