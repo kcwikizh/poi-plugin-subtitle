@@ -13,7 +13,6 @@ export class Notifier {
     _voiceMap = {};
     _timeoutHandle = -1;
     _loader = new Loader();
-    _i18nService = new I18nService();
     __ = (x) => x;
     ___ = (x) => x;
 
@@ -27,7 +26,8 @@ export class Notifier {
         if (_.isEmpty(this._shipGraph)) return;
         this._loader.getSubtitles().then((data) => {
             this._subtitles.ships = data;
-            [this.__, this.___] = this._i18nService.initialize();
+            this.__ = I18nService.getPluginI18n();
+            this.___ = I18nService.getDataI18n();
         });
         for (let category of EXTRA_CATEGORIES) {
             this._subtitles[category] = this._loader.getExtraSubtitles(category);
@@ -126,7 +126,7 @@ export class Notifier {
     }
 
     _getQuoteByLocale(entity) {
-        const locale = this._i18nService._locale;
+        const locale = I18nService.getLocale();
         let quote = entity.jp;
         if (locale === 'zh-CN')
             quote = entity.zh;
