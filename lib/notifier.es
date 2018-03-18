@@ -73,7 +73,7 @@ export class Notifier {
         if (voiceId > 8 && voiceId < 11)
             priority = 0;
         const shipName = this._ships[apiId].api_name;
-        if (voiceId < 30 || voiceId === 141) {
+        if (voiceId < 30 || voiceId === 141 || voiceId === 241) {
             if (!quote) {
                 this._display(__('Subtitle Miss', shipName), priority);
                 return;

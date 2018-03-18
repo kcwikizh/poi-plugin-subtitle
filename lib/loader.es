@@ -175,6 +175,7 @@ export class Loader {
             }
             // HACK: 联合舰队的语音文件名并未加密
             voiceMap[no]['141'] = 141;
+            voiceMap[no]['241'] = 241;
         }
         return voiceMap;
     };
