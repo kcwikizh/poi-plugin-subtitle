@@ -35,9 +35,9 @@ export class Notifier {
     }
 
     handleResponseDetails = (event) => {
-        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.newURL);
+        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.url);
         if (match && match.length === 3) {
-            debug(event.newURL);
+            debug(event.url);
             const [,shipCode, filename] = match;
             switch (shipCode) {
                 case 'kc9998':

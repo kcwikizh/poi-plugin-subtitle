@@ -1,6 +1,11 @@
 import {Notifier} from './lib/notifier';
 import {DBG_EXTRA_HANDLER_NAME} from './lib/constant';
+import {remote} from 'electron';
 
+const {session} = remote
+const filter = {
+    urls: ['*kcs/sound*']
+}
 let notifier = {};
 
 export const
@@ -8,11 +13,14 @@ export const
         dbg.extra(DBG_EXTRA_HANDLER_NAME);
         notifier = new Notifier();
         notifier.initialize();
-        $('kan-game webview').addEventListener('did-get-response-details', notifier.handleResponseDetails);
+        session.defaultSession.webRequest.onBeforeRequest(filter, (e, c) => {
+            notifier.handleResponseDetails(e)
+            c({ cancel: false })
+        });
         window.addEventListener('game.response', notifier.handleGameResponse);
     },
     pluginWillUnload = (e) => {
-        $('kan-game webview').removeEventListener('did-get-response-details', notifier.handleResponseDetails);
+        session.defaultSession.webRequest.onBeforeRequest(filter, null);
         window.removeEventListener('game.response', notifier.handleGameResponse);
     };
 
