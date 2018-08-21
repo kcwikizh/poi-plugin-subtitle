@@ -34,10 +34,10 @@ export class Notifier {
         }
     }
 
-    handleResponseDetails = (event) => {
-        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.url);
+    handleResponseDetails = (url) => {
+        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(url);
         if (match && match.length === 3) {
-            debug(event.url);
+            debug(url);
             const [,shipCode, filename] = match;
             switch (shipCode) {
                 case 'kc9998':
