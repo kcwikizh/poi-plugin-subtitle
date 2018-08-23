@@ -1,10 +1,10 @@
-import {Loader} from './loader';
+import { Loader } from './loader';
 import _ from 'lodash';
-import {EXTRA_CATEGORIES} from './constant';
-import {debug, timeToNextHour} from './util';
-import {I18nService} from './i18n';
-import {Traditionalized} from './traditionalized';
-const {getStore} = window;
+import { EXTRA_CATEGORIES } from './constant';
+import { debug, timeToNextHour } from './util';
+import { I18nService } from './i18n';
+import { Traditionalized } from './traditionalized';
+const { getStore } = window;
 
 export class Notifier {
 
@@ -34,11 +34,11 @@ export class Notifier {
         }
     }
 
-    handleResponseDetails = (url) => {
-        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(url);
+    handleResponseDetails = (event) => {
+        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.url);
         if (match && match.length === 3) {
-            debug(url);
-            const [,shipCode, filename] = match;
+            debug(event.url);
+            const [, shipCode, filename] = match;
             switch (shipCode) {
                 case 'kc9998':
                     this._handleExtraVoice('enemies', filename);
@@ -67,8 +67,8 @@ export class Notifier {
         debug(`apiId: ${apiId}, voiceId: ${voiceId}`);
         let subtitles = this._subtitles['ships'];
         const quote = subtitles['zh-CN'][apiId] ? subtitles['zh-CN'][apiId][voiceId] : '';
-        const {__, ___} = this;
-        debug(`i18n: ${___(apiId+'.'+voiceId)}`);
+        const { __, ___ } = this;
+        debug(`i18n: ${___(apiId + '.' + voiceId)}`);
         let priority = 5;
         if (voiceId > 8 && voiceId < 11)
             priority = 0;
@@ -117,7 +117,7 @@ export class Notifier {
 
     _handleShortDrama(entities) {
         for (const entity of entities) {
-            const {name, time} = entity;
+            const { name, time } = entity;
             const quote = this._getQuoteByLocale(entity);
             setTimeout(() => {
                 this._display(`${name}: ${quote}`);
@@ -137,8 +137,8 @@ export class Notifier {
         return quote;
     }
 
-    _display = (text, priority=5, stickyFor=5000) => {
-        window.log(text, {priority, stickyFor});
+    _display = (text, priority = 5, stickyFor = 5000) => {
+        window.log(text, { priority, stickyFor });
     }
 }
 
