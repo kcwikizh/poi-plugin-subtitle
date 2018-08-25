@@ -2,10 +2,10 @@ import _ from 'lodash';
 import path from 'path';
 import Promise from 'bluebird';
 import fs from 'fs-extra';
-import {EXTRA_CATEGORIES, LANGS, APPDATA_PATH, BASE_DIR, VOICE_KEYS, PLUGIN_NAME, REMOTE_HOST, I18N_DATA_BASEDIR} from './constant';
-import {throwPluginError, encodeSoundFilename, debug} from './util';
-import {Traditionalized} from './traditionalized';
-import {I18nService} from './i18n';
+import { EXTRA_CATEGORIES, LANGS, APPDATA_PATH, BASE_DIR, VOICE_KEYS, PLUGIN_NAME, REMOTE_HOST, I18N_DATA_BASEDIR } from './constant';
+import { throwPluginError, encodeSoundFilename, debug } from './util';
+import { Traditionalized } from './traditionalized';
+import { I18nService } from './i18n';
 const request = Promise.promisifyAll(require('request'));
 
 export class Loader {
@@ -55,7 +55,7 @@ export class Loader {
 
     _readSubtitleSourceFile = (lang) => {
         let path = this._i18nSourcePath[lang];
-        let data = fs.readJsonSync(path, { throws: false});
+        let data = fs.readJsonSync(path, { throws: false });
         if (!data || data.length === 0)
             throwPluginError(`Source data not found: ${path}`);
         return data;
@@ -107,7 +107,7 @@ export class Loader {
                 const version = updates.version;
                 this._assignSubtitle(data[locale], updates, (x) => x);
                 this._needUpdate = true;
-                window.success(`${__('Update Success')}(${version})`, {stickyFor: 3000});
+                window.success(`${__('Update Success')}(${version})`, { stickyFor: 3000 });
             } else if (!_.isEmpty(updates)) {
                 debug(response.body);
                 let resBody = '' + response.body;
@@ -127,7 +127,7 @@ export class Loader {
                 data[key] = value;
             } else {
                 let shipId = key;
-                if(!_.has(data, shipId)) data[shipId] = {};
+                if (!_.has(data, shipId)) data[shipId] = {};
                 for (let [voiceId, quote] of _.entries(value)) {
                     data[shipId][voiceId] = process(quote);
                 }
@@ -162,15 +162,15 @@ export class Loader {
             shipGraphData = JSON.parse(localStorage.start2Body)['api_mst_shipgraph'];
         }
         if (_.isEmpty(shipGraphData)) return;
-        shipGraphData.forEach((graph) => {shipGraph[graph.api_filename] = graph.api_id;});
+        shipGraphData.forEach((graph) => { shipGraph[graph.api_filename] = graph.api_id; });
         return shipGraph;
     };
 
     getVoiceMap = () => {
         let voiceMap = {};
-        for (let no=1; no<=800; no++) {
+        for (let no = 1; no <= 1000; no++) {
             voiceMap[no] = {};
-            for(let vno=1; vno <= VOICE_KEYS.length; vno++) {
+            for (let vno = 1; vno <= VOICE_KEYS.length; vno++) {
                 voiceMap[no][encodeSoundFilename(no, vno)] = vno;
             }
             // HACK: 联合舰队的语音文件名并未加密
