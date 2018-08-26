@@ -1,4 +1,5 @@
 {
+	"Plugin Confict": "The plugin Subtitle has conflcted with %s, subtitles will be confused, please check out the plugin panel.",
 	"Subtitle Miss": "Quote by 【%s】 is missed",
 	"Update Success": "Update Success",
 	"Update Failed": "Update Failed",

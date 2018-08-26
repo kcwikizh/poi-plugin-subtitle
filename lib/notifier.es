@@ -19,19 +19,20 @@ export class Notifier {
     constructor() {
     }
 
-    initialize = () => {
+    initialize = (callback) => {
         this._ships = getStore('const.$ships');
         this._shipGraph = this._loader.getShipGraph();                       // Load ship graph data
         this._voiceMap = this._loader.getVoiceMap();
         if (_.isEmpty(this._shipGraph)) return;
+        for (let category of EXTRA_CATEGORIES) {
+            this._subtitles[category] = this._loader.getExtraSubtitles(category);
+        }
         this._loader.getSubtitles().then((data) => {
             this._subtitles.ships = data;
             this.__ = I18nService.getPluginI18n();
             this.___ = I18nService.getDataI18n();
+            callback && callback()
         });
-        for (let category of EXTRA_CATEGORIES) {
-            this._subtitles[category] = this._loader.getExtraSubtitles(category);
-        }
     }
 
     handleResponseDetails = (event) => {

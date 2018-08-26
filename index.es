@@ -1,8 +1,8 @@
-import {Notifier} from './lib/notifier';
-import {DBG_EXTRA_HANDLER_NAME} from './lib/constant';
-import {remote} from 'electron';
+import { Notifier } from './lib/notifier';
+import { DBG_EXTRA_HANDLER_NAME, CONFLICT_PLUGINS } from './lib/constant';
+import { remote } from 'electron';
 
-const {session} = remote
+const { session } = remote
 const filter = {
     urls: ['*kcs/sound*']
 }
@@ -12,16 +12,30 @@ export const
     pluginDidLoad = (e) => {
         dbg.extra(DBG_EXTRA_HANDLER_NAME);
         notifier = new Notifier();
-        notifier.initialize();
-        session.defaultSession.webRequest.onBeforeRequest(filter, (e, c) => {
-            notifier.handleResponseDetails(e)
-            c({ cancel: false })
+        notifier.initialize(() => {
+            const __ = notifier.__.bind(notifier)
+            session.defaultSession.webRequest.onBeforeRequest(filter, (e, c) => {
+                notifier.handleResponseDetails(e)
+                c({ cancel: false })
+            });
+            window.addEventListener('game.response', notifier.handleGameResponse);
+            const timer = setTimeout(() => {
+                if (CONFLICT_PLUGINS && !!CONFLICT_PLUGINS.length) {
+                    const allEnalbedPlugins = getStore('plugins')
+                        .filter(a => a.enabled) || []
+                    const allConflictPlugins = allEnalbedPlugins
+                        .filter(plugin => CONFLICT_PLUGINS.includes(plugin.id))
+                        .reduce((ret, plugin) => !!ret ? ret += `, ${plugin.name}` : plugin.name, '')
+                    if (!!allConflictPlugins) {
+                        window.warn(__('Plugin Confict', allConflictPlugins), { priority: 99999 })
+                    }
+                }
+            }, 3000)
         });
-        window.addEventListener('game.response', notifier.handleGameResponse);
     },
     pluginWillUnload = (e) => {
         session.defaultSession.webRequest.onBeforeRequest(filter, null);
         window.removeEventListener('game.response', notifier.handleGameResponse);
     };
 
-export {settingsClass} from './lib/settings';
+export { settingsClass } from './lib/settings';

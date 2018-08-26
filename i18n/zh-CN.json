@@ -1,5 +1,6 @@
 {
-	"Subtitle Miss": "本【%s】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.moe/）帮助我们补全台词吧！",
+	"Plugin Confict": "kcwiki语音字幕插件和%s产生冲突，可能出现字幕混乱等情况，请检查插件面板。",
+	"Subtitle Miss": "本【%s】的台词字幕缺失的说，来舰娘百科（http://zh.kcwiki.org/）帮助我们补全台词吧！",
 	"Update Success": "语音字幕数据更新成功，字幕翻译由舰娘百科（https://zh.kcwiki.org）提供",
 	"Update Failed": "语音字幕自动更新失败，请联系有关开发人员，并手动更新插件以更新字幕数据",
 	"KCwiki Quotes Subtitle": "kcwiki语音字幕",
