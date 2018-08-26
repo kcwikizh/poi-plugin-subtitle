@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-subtitle",
-  "version": "1.2.15-beta.0",
+  "version": "1.2.15",
   "description": "A poi plugin which can display subtitles of kanmusu voices in alert panel",
   "main": "index.es",
   "scripts": {
