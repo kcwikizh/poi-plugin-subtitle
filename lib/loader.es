@@ -80,7 +80,7 @@ export class Loader {
                 url = `${REMOTE_HOST}/zh-tw/diff/`;
                 break;
             case 'en-US':
-                url = `${REMOTE_HOST}/en/diff`;
+                url = `${REMOTE_HOST}/en/diff/`;
                 break;
             default:
                 url = `${REMOTE_HOST}/jp/diff/`;
@@ -92,10 +92,10 @@ export class Loader {
         try {
             const responses = await request.getAsync(url);
             let responseBody = {};
+            const response = responses;
             if (_.isArray(responses)) {
                 responseBody = responses[1];
             } else {
-                const response = responses;
                 if (response.statusCode >= 300)
                     throwPluginError(`Network exception(${response.statusCode}): ${response.statusMessage}`);
                 responseBody = response.body;
