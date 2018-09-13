@@ -36,22 +36,24 @@ export class Notifier {
     }
 
     handleResponseDetails = (event) => {
-        const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.url);
-        if (match && match.length === 3) {
-            debug(event.url);
-            const [, shipCode, filename] = match;
-            switch (shipCode) {
-                case 'kc9998':
-                    this._handleExtraVoice('enemies', filename);
-                    break;
-                case 'kc9999':
-                    this._handleExtraVoice('npc', filename);
-                    break;
-                case 'titlecall':
-                    this._handleExtraVoice('titlecall', filename.replace('/', ''));
-                    break;
-                default:
-                    this._handleShipVoice(shipCode, filename);
+        if (!getStore('layout.webview.ref') || event.webContentsId === getStore('layout.webview.ref').getWebContents().id) {
+            const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.url);
+            if (match && match.length === 3) {
+                debug(event.url);
+                const [, shipCode, filename] = match;
+                switch (shipCode) {
+                    case 'kc9998':
+                        this._handleExtraVoice('enemies', filename);
+                        break;
+                    case 'kc9999':
+                        this._handleExtraVoice('npc', filename);
+                        break;
+                    case 'titlecall':
+                        this._handleExtraVoice('titlecall', filename.replace('/', ''));
+                        break;
+                    default:
+                        this._handleShipVoice(shipCode, filename);
+                }
             }
         }
     }
