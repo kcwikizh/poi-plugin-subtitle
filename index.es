@@ -19,18 +19,6 @@ export const
                 c({ cancel: false })
             });
             window.addEventListener('game.response', notifier.handleGameResponse);
-            const timer = setTimeout(() => {
-                if (CONFLICT_PLUGINS && !!CONFLICT_PLUGINS.length) {
-                    const allEnalbedPlugins = getStore('plugins')
-                        .filter(a => a.enabled) || []
-                    const allConflictPlugins = allEnalbedPlugins
-                        .filter(plugin => CONFLICT_PLUGINS.includes(plugin.id))
-                        .reduce((ret, plugin) => !!ret ? ret += `, ${plugin.name}` : plugin.name, '')
-                    if (!!allConflictPlugins) {
-                        window.warn(__('Plugin Confict', allConflictPlugins), { priority: 99999 })
-                    }
-                }
-            }, 3000)
         });
     },
     pluginWillUnload = (e) => {
