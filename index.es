@@ -1,5 +1,5 @@
 import { Notifier } from './lib/notifier';
-import { DBG_EXTRA_HANDLER_NAME, CONFLICT_PLUGINS } from './lib/constant';
+import { DBG_EXTRA_HANDLER_NAME } from './lib/constant';
 import { remote } from 'electron';
 
 const { session } = remote
