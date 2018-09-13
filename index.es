@@ -24,8 +24,9 @@ function hackHowler() {
         Howler._howls = new Proxy(Howler.__howls, {
             set: function(target, property, value, receiver) {
                 target[property] = value
-                if (value && value._src) {
-                    emitter.emit('get-sound-url', value._src)
+                if (value && value._src && property == target.length - 1) {
+                    const src = Array.isArray(value._src) ? value._src[0] : value._src
+                    emitter.emit('get-sound-url', src)
                 }
                 return true
             }
