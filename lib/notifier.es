@@ -107,7 +107,7 @@ export class Notifier {
             this._handleShortDrama(entity);
             return;
         }
-        const name = (I18nService.getLocale() === 'en-US') ? _.capitalize(toRomaji(Object.values(this._ships).find(x => x.api_name == _name).api_yomi)) : entity.name;
+        const name = (I18nService.getLocale() === 'en-US') ? _.capitalize(toRomaji(Object.values(this._ships).find(x => x.api_name == entity.name).api_yomi)) : entity.name;
         const quote = this._getQuoteByLocale(entity);
         if (!quote) {
             debug(`${title} subtitle missed: #${voiceId}`);
@@ -122,7 +122,7 @@ export class Notifier {
     _handleShortDrama(entities) {
         for (const entity of entities) {
             const time = entity.time;
-            const name = (I18nService.getLocale() === 'en-US') ? _.capitalize(toRomaji(Object.values(this._ships).find(x => x.api_name == _name).api_yomi)) : entity.name;
+            const name = (I18nService.getLocale() === 'en-US') ? _.capitalize(toRomaji(Object.values(this._ships).find(x => x.api_name == entity.name).api_yomi)) : entity.name;
             const quote = this._getQuoteByLocale(entity);
             setTimeout(() => {
                 this._display(`${name}: ${quote}`);
