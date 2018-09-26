@@ -37,7 +37,10 @@ export class Notifier {
     }
 
     handleResponseDetails = (event) => {
-        if (!getStore('layout.webview.ref') || event.webContentsId === getStore('layout.webview.ref').getWebContents().id) {
+        if (!getStore('layout.webview.ref') || (
+            getStore('layout.webview.ref').isReady() &&
+            event.webContentsId === getStore('layout.webview.ref').getWebContents().id
+        )) {
             const match = /kcs\/sound\/(.*?)\/(.*?).mp3/.exec(event.url);
             if (match && match.length === 3) {
                 debug(event.url);
