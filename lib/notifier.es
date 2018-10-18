@@ -67,7 +67,7 @@ export class Notifier {
     }
     
     _handleEnglishName = (entity) => {
-      const ship = typeof(entity) === "number" ? this._ships[entity] : Object.values(this._ships).find(x => x.api_name == (entity.name == "\u5927\u6DC0" ? (entity.name + "garb") : entity.name));
+      const ship = typeof(entity) === "number" ? this._ships[entity] : Object.values(this._ships).find(x => x.api_name == entity.name));
       if(ship == null)
         return;
       if(_.includes(FOREIGN_SHIPS, ship.api_id)) {
