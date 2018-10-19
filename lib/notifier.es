@@ -73,7 +73,8 @@ export class Notifier {
         if (!voiceId) return;
         debug(`apiId: ${apiId}, voiceId: ${voiceId}`);
         let subtitles = this._subtitles['ships'];
-        const quote = subtitles['zh-CN'][apiId] ? subtitles['zh-CN'][apiId][voiceId] : '';
+        const locale = I18nService.getLocale();
+        const quote = subtitles[locale][apiId] ? subtitles[locale][apiId][voiceId] : '';
         const { __, ___ } = this;
         debug(`i18n: ${___(apiId + '.' + voiceId)}`);
         let priority = 5;
