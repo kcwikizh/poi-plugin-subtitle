@@ -4,10 +4,7 @@ import { EXTRA_CATEGORIES } from './constant';
 import { debug, timeToNextHour } from './util';
 import { I18nService } from './i18n';
 import { Traditionalized } from './traditionalized';
-
 const { getStore } = window;
-
-const t = window.i18n.resources.__;
 
 export class Notifier {
 
@@ -17,6 +14,7 @@ export class Notifier {
     _timeoutHandle = -1;
     _loader = new Loader();
     __ = (x) => x;
+    __r = (x) => x;
     ___ = (x) => x;
 
     constructor() {
@@ -33,6 +31,7 @@ export class Notifier {
         this._loader.getSubtitles().then((data) => {
             this._subtitles.ships = data;
             this.__ = I18nService.getPluginI18n();
+            this.__r = window.i18n.resources.__;
             this.___ = I18nService.getDataI18n();
             callback && callback()
         });
@@ -67,7 +66,7 @@ export class Notifier {
     handleGameResponse = (event) => {
         clearTimeout(this._timeoutHandle);
     }
-
+  
     _handleShipVoice = (shipCode, filename) => {
         const apiId = this._shipGraph[shipCode.slice(2)];
         if (!apiId) return;
@@ -75,13 +74,14 @@ export class Notifier {
         if (!voiceId) return;
         debug(`apiId: ${apiId}, voiceId: ${voiceId}`);
         let subtitles = this._subtitles['ships'];
-        const quote = subtitles['zh-CN'][apiId] ? subtitles['zh-CN'][apiId][voiceId] : '';
-        const { __, ___ } = this;
+        const locale = I18nService.getLocale();
+        const quote = subtitles[locale][apiId] ? subtitles[locale][apiId][voiceId] : '';
+        const { __, __r, ___ } = this;
         debug(`i18n: ${___(apiId + '.' + voiceId)}`);
         let priority = 5;
         if (voiceId > 8 && voiceId < 11)
             priority = 0;
-        const shipName = t(this._ships[apiId].api_name);
+        const shipName = __r(this._ships[apiId].api_name);
         if (voiceId < 30 || voiceId === 141 || voiceId === 241) {
             if (!quote) {
                 this._display(__('Subtitle Miss', shipName), priority);
@@ -112,7 +112,7 @@ export class Notifier {
             this._handleShortDrama(entity);
             return;
         }
-        const name = t(entity.name);
+        const name = this.__r(entity.name);
         const quote = this._getQuoteByLocale(entity);
         if (!quote) {
             debug(`${title} subtitle missed: #${voiceId}`);
@@ -127,7 +127,7 @@ export class Notifier {
     _handleShortDrama(entities) {
         for (const entity of entities) {
             const time = entity.time;
-            const name = t(entity.name);
+            const name = this.__r(entity.name);
             const quote = this._getQuoteByLocale(entity);
             setTimeout(() => {
                 this._display(`${name}: ${quote}`);
