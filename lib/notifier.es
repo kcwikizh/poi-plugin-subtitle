@@ -31,7 +31,7 @@ export class Notifier {
         this._loader.getSubtitles().then((data) => {
             this._subtitles.ships = data;
             this.__ = I18nService.getPluginI18n();
-            this.__r = window.i18n.resources.__;
+            this.__r = (x) => window.i18n.resources.fixedT(x, {lng: I18nService.getLocale()});
             this.___ = I18nService.getDataI18n();
             callback && callback()
         });
