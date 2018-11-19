@@ -1,4 +1,5 @@
 import React from 'react';
+import i18next from 'views/env-parts/i18next'
 import {FormControl, Row, Col, Grid} from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {get} from "lodash";
@@ -46,7 +47,7 @@ export const settingsClass = () =>
     <div>
         <Row>
             <Col xs={6}>
-                <Divider text={window.i18n.setting.__('Language')}/>
+                <Divider text={i18next.t('setting:Language')}/>
             </Col>
             <Col xs={6} style={{marginBottom: '25px'}}>
                 <LocaleSelectConfig/>

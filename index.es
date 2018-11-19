@@ -15,7 +15,11 @@ export const
         notifier.initialize(() => {
             const __ = notifier.__.bind(notifier)
             session.defaultSession.webRequest.onBeforeRequest(filter, (e, c) => {
-                notifier.handleResponseDetails(e)
+                try {
+                    notifier.handleResponseDetails(e)
+                } catch (err) {
+                    console.error(err)
+                }
                 c({ cancel: false })
             });
             window.addEventListener('game.response', notifier.handleGameResponse);
