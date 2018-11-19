@@ -1,5 +1,6 @@
 import { Loader } from './loader';
 import _ from 'lodash';
+import i18next from 'views/env-parts/i18next'
 import { EXTRA_CATEGORIES } from './constant';
 import { debug, timeToNextHour } from './util';
 import { I18nService } from './i18n';
@@ -31,7 +32,7 @@ export class Notifier {
         this._loader.getSubtitles().then((data) => {
             this._subtitles.ships = data;
             this.__ = I18nService.getPluginI18n();
-            this.__r = (x) => window.i18n.resources.fixedT(x, {lng: I18nService.getLocale()});
+            this.__r = x => i18next.getFixedT(I18nService.getLocale(), 'resources')(x);
             this.___ = I18nService.getDataI18n();
             callback && callback()
         });
