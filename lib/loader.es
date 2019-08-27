@@ -168,7 +168,8 @@ export class Loader {
 
     getVoiceMap = () => {
         let voiceMap = {};
-        for (let no = 1; no <= 1000; no++) {
+        // 2019.08.27 编号已经到 1500 了
+        for (let no = 1; no <= 1500; no++) {
             voiceMap[no] = {};
             for (let vno = 1; vno <= VOICE_KEYS.length; vno++) {
                 voiceMap[no][encodeSoundFilename(no, vno)] = vno;
