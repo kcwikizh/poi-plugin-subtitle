@@ -5,7 +5,7 @@ import { remote } from 'electron';
 const { session } = remote
 const filter = {
     urls: [
-        'http://*/kcs/sound/*'
+        'http://*/kcs/sound/*',
         'https://*/kcs/sound/*'
     ]
 }
