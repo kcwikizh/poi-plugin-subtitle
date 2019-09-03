@@ -4,7 +4,10 @@ import { remote } from 'electron';
 
 const { session } = remote
 const filter = {
-    urls: ['*kcs/sound*']
+    urls: [
+        'http://*/kcs/sound/*',
+        'https://*/kcs/sound/*'
+    ]
 }
 let notifier = {};
 
