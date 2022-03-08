@@ -1,6 +1,7 @@
 import {PLUGIN_NAME, LANGS, I18N_DATA_BASEDIR, LOCALE_CONFIG_KEY} from './constant';
 import {readJsonSync} from 'fs-extra';
 import _ from 'lodash';
+import { Traditionalized, t2s } from './traditionalized.es';
 import path from 'path-extra';
 
 const readI18nResources = (filePath) => {
@@ -24,6 +25,9 @@ export class I18nService {
     }
 
     static getDataI18n() {
+        let locale = I18nService.getLocale();
+        if (locale == 'zh-CN') return (...arg) => t2s(i18next.__(...arg));
+        if (locale == 'zh-TW') return (...arg) => Traditionalized(i18next.__(...arg));
         return (...arg) => i18next.__(...arg);
     }
 

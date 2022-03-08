@@ -14,3 +14,16 @@ export const Traditionalized = (cc) => {
   }
   return str;
 };
+
+export const t2s = (cc) => {
+  let str = '';
+  const ss = JTPYStr();
+  const tt = FTPYStr();
+  for (let i=0; i<cc.length; i++) {
+    if (cc.charCodeAt(i) > 10000 && tt.indexOf(cc.charAt(i)) !== -1)
+      str += ss.charAt(tt.indexOf(cc.charAt(i)));
+    else
+      str += cc.charAt(i);
+  }
+  return str;
+};
