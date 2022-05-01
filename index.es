@@ -1,35 +1,32 @@
 import { Notifier } from './lib/notifier';
 import { DBG_EXTRA_HANDLER_NAME } from './lib/constant';
-import { remote } from 'electron';
 
-const { session } = remote
-const filter = {
-    urls: [
-        'http://*/kcs/sound/*',
-        'https://*/kcs/sound/*'
-    ]
-}
+import { ResourceNotifier } from 'views/services/resource-notifier'
+
 let notifier = {};
 
 export const
     pluginDidLoad = (e) => {
         dbg.extra(DBG_EXTRA_HANDLER_NAME);
         notifier = new Notifier();
-        notifier.initialize(() => {
-            const __ = notifier.__.bind(notifier)
-            session.defaultSession.webRequest.onBeforeSendHeaders(filter, (e, c) => {
+
+        notifier.handleSountRequest = function (e) {
+            if (e.url.includes('/kcs/sound/')) {
                 try {
                     notifier.handleResponseDetails(e)
                 } catch (err) {
                     console.error(err)
                 }
-                c({ cancel: false })
-            });
+            }
+        };
+        notifier.initialize(() => {
+            const __ = notifier.__.bind(notifier)
             window.addEventListener('game.response', notifier.handleGameResponse);
+            ResourceNotifier.addListener('request', notifier.handleSountRequest);
         });
     },
     pluginWillUnload = (e) => {
-        session.defaultSession.webRequest.onBeforeSendHeaders(filter, null);
+        ResourceNotifier.removeListener('request', notifier.handleSountRequest);
         window.removeEventListener('game.response', notifier.handleGameResponse);
     };
 
