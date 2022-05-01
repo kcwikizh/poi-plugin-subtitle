@@ -17,7 +17,7 @@ export const
         notifier = new Notifier();
         notifier.initialize(() => {
             const __ = notifier.__.bind(notifier)
-            session.defaultSession.webRequest.onBeforeRequest(filter, (e, c) => {
+            session.defaultSession.webRequest.onBeforeSendHeaders(filter, (e, c) => {
                 try {
                     notifier.handleResponseDetails(e)
                 } catch (err) {
@@ -29,7 +29,7 @@ export const
         });
     },
     pluginWillUnload = (e) => {
-        session.defaultSession.webRequest.onBeforeRequest(filter, null);
+        session.defaultSession.webRequest.onBeforeSendHeaders(filter, null);
         window.removeEventListener('game.response', notifier.handleGameResponse);
     };
 
