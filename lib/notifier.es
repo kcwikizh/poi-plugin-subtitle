@@ -4,7 +4,7 @@ import i18next from 'views/env-parts/i18next'
 import { EXTRA_CATEGORIES } from './constant';
 import { debug, timeToNextHour } from './util';
 import { I18nService } from './i18n';
-import { Traditionalized } from './traditionalized';
+import { Traditionalized, t2s } from './traditionalized';
 const { getStore } = window;
 
 export class Notifier {
@@ -140,7 +140,7 @@ export class Notifier {
         const locale = I18nService.getLocale();
         let quote = entity.jp;
         if (locale === 'zh-CN')
-            quote = entity.zh;
+            quote = t2s(entity.zh);
         else if (locale === 'en-US' && entity.en)
             quote = entity.en;
         else if (locale === 'zh-TW')
