@@ -1,12 +1,10 @@
 import _ from 'lodash';
 import path from 'path';
-import Promise from 'bluebird';
 import fs from 'fs-extra';
 import { EXTRA_CATEGORIES, LANGS, APPDATA_PATH, BASE_DIR, VOICE_KEYS, PLUGIN_NAME, REMOTE_HOST, I18N_DATA_BASEDIR } from './constant';
 import { throwPluginError, encodeSoundFilename, debug } from './util';
 import { Traditionalized } from './traditionalized';
 import { I18nService } from './i18n';
-const request = Promise.promisifyAll(require('request'));
 
 export class Loader {
 
@@ -90,18 +88,12 @@ export class Loader {
         const backup = _.cloneDeep(data);
         const __ = I18nService.getPluginI18n();
         try {
-            const responses = await request.getAsync(url);
-            let responseBody = {};
-            const response = responses;
-            if (_.isArray(responses)) {
-                responseBody = responses[1];
-            } else {
-                if (response.statusCode >= 300)
-                    throwPluginError(`Network exception(${response.statusCode}): ${response.statusMessage}`);
-                responseBody = response.body;
-            }
+            const response = await fetch(url);
+            if (response.status >= 300)
+                throwPluginError(`Network exception(${response.status}): ${response.statusText}`);
+            const responseBody = await response.text();
             if (!responseBody)
-                throwPluginError(`Fetch updates failed(${url}), responses: ${JSON.stringify(responses).slice(0, 300)}`);
+                throwPluginError(`Fetch updates failed(${url}), empty response body`);
             const updates = JSON.parse(responseBody);
             if (_.has(updates, 'version')) {
                 const version = updates.version;
@@ -109,9 +101,8 @@ export class Loader {
                 this._needUpdate = true;
                 window.success(`${__('Update Success')}(${version})`, { stickyFor: 3000 });
             } else if (!_.isEmpty(updates)) {
-                debug(response.body);
-                let resBody = '' + response.body;
-                throwPluginError(`Invalid subtitle updates: ${resBody.slice(0, 100)}`);
+                debug(responseBody);
+                throwPluginError(`Invalid subtitle updates: ${responseBody.slice(0, 100)}`);
             }
         } catch (e) {
             console.error(e.message);
